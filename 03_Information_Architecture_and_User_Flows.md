@@ -1,257 +1,240 @@
-**FANAXO AI  /  BUILD SPEC 03** 
+**FANAXO AI / BUILD SPEC 03**
 
-# **03** 
+# **03**
 
-## **Information Architecture and End-toEnd User Flows** 
+## **Information Architecture and End-toEnd User Flows**
 
-**Defines routing, permissions, state transitions, edge cases, and all role-specific workflows.** 
+**Defines routing, permissions, state transitions, edge cases, and all role-specific workflows.**
 
-### **Evaluation Priority Order** 
+### **Evaluation Priority Order**
 
-**QUALITY TARGET: Build for the maximum possible evaluation score. No document can guarantee a numerical score, but the implementation must provide objective evidence for every criterion and must not be submitted while any highor medium-impact release gate is failing.** 
+**QUALITY TARGET: Build for the maximum possible evaluation score. No document can guarantee a numerical score, but the implementation must provide objective evidence for every criterion and must not be submitted while any highor medium-impact release gate is failing.**
 
-|**Impact**|**Criterion**|**Non-negotiable evidence**|
-|---|---|---|
-|**HIGH**|**Code Quality**|Clean, readable, modular, SOLID, strictly<br>typed, documented, and easyto extend.|
-|**HIGH**|**Problem Statement Alignment**|Directly solves live stadium needs for fans,<br>volunteers, operators, organizers, and<br>venue staf.|
-|**MEDIUM**|**Security**|Least privilege, server-side authorization,<br>validation, safe sessions, secure AI tools,<br>and auditability.|
-|**MEDIUM**|**Eficiency**|Fast loading, bounded memory/CPU use,<br>optimized realtime updates, and browser-<br>safe simulation.|
-|**LOW**|**Testing and Maintainability**|Automated validation of critical paths,<br>deterministic demos, and maintainable<br>contracts.|
-|**LOW**|**Accessibility**|WCAG 2.2 AA, keyboard and screen-reader<br>support, reduced motion, and inclusive<br>routing.|
+| **Impact** | **Criterion**                   | **Non-negotiable evidence**                                                                                     |
+| ---------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **HIGH**   | **Code Quality**                | Clean, readable, modular, SOLID, strictly<br>typed, documented, and easyto extend.                              |
+| **HIGH**   | **Problem Statement Alignment** | Directly solves live stadium needs for fans,<br>volunteers, operators, organizers, and<br>venue staf.           |
+| **MEDIUM** | **Security**                    | Least privilege, server-side authorization,<br>validation, safe sessions, secure AI tools,<br>and auditability. |
+| **MEDIUM** | **Eficiency**                   | Fast loading, bounded memory/CPU use,<br>optimized realtime updates, and browser-<br>safe simulation.           |
+| **LOW**    | **Testing and Maintainability** | Automated validation of critical paths,<br>deterministic demos, and maintainable<br>contracts.                  |
+| **LOW**    | **Accessibility**               | WCAG 2.2 AA, keyboard and screen-reader<br>support, reduced motion, and inclusive<br>routing.                   |
 
+#### **Submission release gates**
 
+- Code Quality gate: strict TypeScript passes with zero errors; no any, @ts-ignore, circular dependencies, god components, duplicated business rules, or unexplained console warnings.
 
-#### **Submission release gates** 
+- Alignment gate: the connected Gate C workflow works end-to-end and visibly benefits all three portals through shared state, not independent mock animations.
 
-- Code Quality gate: strict TypeScript passes with zero errors; no any, @ts-ignore, circular dependencies, god components, duplicated business rules, or unexplained console warnings. 
+- Security gate: authorization is enforced on the server for every privileged operation; secrets are absent from client bundles and repository history; high-severity findings are zero.
 
-- Alignment gate: the connected Gate C workflow works end-to-end and visibly benefits all three portals through shared state, not independent mock animations. 
+- Efficiency gate: production build meets defined web performance and simulation budgets; no full React render per simulation frame; listeners, timers, and workers are cleaned up.
 
-- Security gate: authorization is enforced on the server for every privileged operation; secrets are absent from client bundles and repository history; high-severity findings are zero. 
+- Testing gate: critical domain, API, authorization, and connected E2E scenarios pass deterministically in CI.
 
-- Efficiency gate: production build meets defined web performance and simulation budgets; no full React render per simulation frame; listeners, timers, and workers are cleaned up. 
+- Accessibility gate: automated axe checks pass for critical screens and manual keyboard, focus, announcement, contrast, and reduced-motion checks are completed.
 
-- Testing gate: critical domain, API, authorization, and connected E2E scenarios pass deterministically in CI. 
+**Product**
 
-- Accessibility gate: automated axe checks pass for critical screens and manual keyboard, focus, announcement, contrast, and reduced-motion checks are completed. 
+Fanaxo AI - GenAI stadium operations and matchday experience platform
 
-**Product** 
+**Primary quality gates**
 
-Fanaxo AI - GenAI stadium operations and matchday experience platform 
+Code Quality | Security | Efficiency | Testing | Accessibility |
 
-**Primary quality gates** 
+Implementation-ready specification | Claude input pack Page 1
 
-Code Quality | Security | Efficiency | Testing | Accessibility | 
+**FANAXO AI / BUILD SPEC 03**
 
-Implementation-ready specification  |  Claude input pack Page 1 
+Problem Statement Alignment
 
-**FANAXO AI  /  BUILD SPEC 03** 
+### **1. Application map**
 
-Problem Statement Alignment 
+Public / -> /select-role Fan /fan/ticket -> /fan/preferences -> /fan/dashboard /fan/dashboard -> /fan/navigation | /fan/assistant Volunteer /volunteer/login -> /volunteer/dashboard /volunteer/dashboard -> /volunteer/report | /volunteer/copilot Operator /operator/login -> /operator/dashboard /operator/dashboard -> /operator/simulation | /operator/incidents -> /operator/volunteers | /operator/copilot
 
-### **1. Application map** 
+-> /operator/reports
 
-Public / -> /select-role Fan /fan/ticket -> /fan/preferences -> /fan/dashboard /fan/dashboard -> /fan/navigation | /fan/assistant Volunteer /volunteer/login -> /volunteer/dashboard /volunteer/dashboard -> /volunteer/report | /volunteer/copilot Operator /operator/login -> /operator/dashboard /operator/dashboard -> /operator/simulation | /operator/incidents -> /operator/volunteers | /operator/copilot 
+### **2. Role and permission model**
 
--> /operator/reports 
+| **Action**                              | **Fan**            | **Volunteer**     | **Operator**                    |
+| --------------------------------------- | ------------------ | ----------------- | ------------------------------- |
+| View public venue and match information | Yes                | Yes               | Yes                             |
+| View personal ticket and route          | Own only           | No                | Support view by request<br>only |
+| Request assistance or report issue      | Yes                | Yes               | Yes                             |
+| View assigned tasks                     | No                 | Own only          | All authorized venue tasks      |
+| Create operational incident             | Limited fan report | Yes               | Yes                             |
+| Assign or reassign tasks                | No                 | No                | Yes                             |
+| Change gate or route operational status | No                 | No                | Yes with confrmation            |
+| Send targeted alert                     | No                 | No                | Yes                             |
+| Approve AI operational recommendation   | No                 | No                | Yes                             |
+| View audit logs and reports             | Own activity only  | Own activity only | Authorized venue scope          |
 
-### **2. Role and permission model** 
+Client-side route guards improve UX but are not security boundaries. Every server action must revalidate identity, role, venue scope, and resource ownership.
 
-|**Action**|**Fan**|**Volunteer**|**Operator**|
-|---|---|---|---|
-|View public venue and match information|Yes|Yes|Yes|
-|View personal ticket and route|Own only|No|Support view by request<br>only|
-|Request assistance or report issue|Yes|Yes|Yes|
-|View assigned tasks|No|Own only|All authorized venue tasks|
-|Create operational incident|Limited fan report|Yes|Yes|
-|Assign or reassign tasks|No|No|Yes|
-|Change gate or route operational status|No|No|Yes with confrmation|
-|Send targeted alert|No|No|Yes|
-|Approve AI operational recommendation|No|No|Yes|
-|View audit logs and reports|Own activity only|Own activity only|Authorized venue scope|
+### **3. Authentication flows**
 
+#### **3.1 Fan ticket access**
 
+1. Fan chooses scan, upload, ticket ID, demo ticket, or guest mode.
 
-Client-side route guards improve UX but are not security boundaries. Every server action must revalidate identity, role, venue scope, and resource ownership. 
+2. Client parses only the minimum QR payload and sends a ticket token to the server.
 
-### **3. Authentication flows** 
+3. Server validates format, status, match, and replay/abuse controls.
 
-#### **3.1 Fan ticket access** 
+4. Server creates a short-lived fan session; never place sensitive ticket data in the URL.
 
-1. Fan chooses scan, upload, ticket ID, demo ticket, or guest mode. 
+5. Fan selects language and accessibility preferences.
 
-2. Client parses only the minimum QR payload and sends a ticket token to the server. 
+6. Dashboard loads match, destination, live route, and facilities.
 
-3. Server validates format, status, match, and replay/abuse controls. 
+Implementation-ready specification | Claude input pack Page 2
 
-4. Server creates a short-lived fan session; never place sensitive ticket data in the URL. 
+**FANAXO AI / BUILD SPEC 03**
 
-5. Fan selects language and accessibility preferences. 
+#### **3.2 Volunteer access**
 
-6. Dashboard loads match, destination, live route, and facilities. 
+7. Volunteer uses staff ID or badge plus OTP in the demo.
 
-Implementation-ready specification  |  Claude input pack Page 2 
+8. Server confirms active shift, role, venue, and zone.
 
-**FANAXO AI  /  BUILD SPEC 03** 
+9. Dashboard shows only authorized tasks and procedures.
 
-#### **3.2 Volunteer access** 
+10. Session expiration returns the user to login without losing an unsent incident draft.
 
-7. Volunteer uses staff ID or badge plus OTP in the demo. 
+#### **3.3 Operator access**
 
-8. Server confirms active shift, role, venue, and zone. 
+11. Operator signs in with organization account and simulated MFA.
 
-9. Dashboard shows only authorized tasks and procedures. 
+12. Server assigns least-privilege scopes.
 
-10. Session expiration returns the user to login without losing an unsent incident draft. 
+13. High-risk actions require reauthentication or a confirmation step.
 
-#### **3.3 Operator access** 
+14. Every action records actor, timestamp, reason, affected resources, and correlation ID.
 
-11. Operator signs in with organization account and simulated MFA. 
+### **4. Fan journey**
 
-12. Server assigns least-privilege scopes. 
+| **Stage**    | **User action**                                  | **System response**                                           | **Failure handling**                                      |
+| ------------ | ------------------------------------------------ | ------------------------------------------------------------- | --------------------------------------------------------- |
+| Entry        | Scan or enter ticket                             | Verify and open preferences                                   | Explain invalid, used, expired, or wrong-<br>venue ticket |
+| Plan         | Review arrival, gate, transit,<br>and conditions | Personalized recommendations                                  | Show last-updated time if feed is stale                   |
+| Navigate     | Start route                                      | Turn-by-turn guidance and density ahead                       | Ofer alternate route or static map                        |
+| Use venue    | Find food, restroom, medical,<br>merchandise     | Filter by distance, queue, dietary and accessibility<br>needs | Show unavailable status and next option                   |
+| Request help | Ask AI or volunteer                              | Contextual answer or assistance task                          | Provide emergency and direct staf<br>fallback             |
+| Leave        | Ask for best exit and transit                    | Zone-aware departure plan                                     | Show transport delay alternatives                         |
 
-13. High-risk actions require reauthentication or a confirmation step. 
+### **5. Volunteer journey**
 
-14. Every action records actor, timestamp, reason, affected resources, and correlation ID. 
+| **Stage**       | **Required capabilities**                                  | **State changes**                             |
+| --------------- | ---------------------------------------------------------- | --------------------------------------------- |
+| Shift start     | Confrm role, zone, equipment, and briefng                  | Volunteer status becomes available            |
+| Task receive    | See priority, location, route, SLA, and recommended action | Task becomes delivered                        |
+| Task accept     | Acknowledge and navigate                                   | Task becomes accepted and operator sees owner |
+| Fan support     | Translate, navigate, or consult procedure                  | Assistance interaction is logged minimally    |
+| Incident report | Text/voice/image, category, location, severity             | Incident is validated, classifed, and queued  |
+| Escalation      | Request security, medical, maintenance, or supervisor      | Escalation is routed and auditable            |
+| Resolution      | Add outcome and close task                                 | Incident or task becomes resolved             |
+| Shift handover  | Summarize open tasks and notable events                    | Structured handover record is created         |
 
-### **4. Fan journey** 
+### **6. Operator journey**
 
-|**Stage**|**User action**|**System response**|**Failure handling**|
-|---|---|---|---|
-|Entry|Scan or enter ticket|Verify and open preferences|Explain invalid, used, expired, or wrong-<br>venue ticket|
-|Plan|Review arrival, gate, transit,<br>and conditions|Personalized recommendations|Show last-updated time if feed is stale|
-|Navigate|Start route|Turn-by-turn guidance and density ahead|Ofer alternate route or static map|
-|Use venue|Find food, restroom, medical,<br>merchandise|Filter by distance, queue, dietary and accessibility<br>needs|Show unavailable status and next option|
-|Request help|Ask AI or volunteer|Contextual answer or assistance task|Provide emergency and direct staf<br>fallback|
-|Leave|Ask for best exit and transit|Zone-aware departure plan|Show transport delay alternatives|
+| **Stage** | **Operator view**                                            | **Permitted action**                    |
+| --------- | ------------------------------------------------------------ | --------------------------------------- |
+| Monitor   | Digital twin, feeds, queue, incidents, volunteers, transport | Filter, inspect, compare, replay        |
+| Predict   | 5/15/30 minute risk and confdence                            | Request explanation or alternative plan |
 
+Implementation-ready specification | Claude input pack Page 3
 
+**FANAXO AI / BUILD SPEC 03**
 
-### **5. Volunteer journey** 
+| **Stage**   | **Operator view**                               | **Permitted action**                    |
+| ----------- | ----------------------------------------------- | --------------------------------------- |
+| Decide      | AI recommendation and operational constraints   | Approve, modify, reject, or defer       |
+| Coordinate  | Available volunteers and response teams         | Assign tasks and targeted instructions  |
+| Communicate | Audience, language, channel, message preview    | Approve localized alert or announcement |
+| Resolve     | Outcome, remaining risk, evidence               | Mark resolved or reopen                 |
+| Review      | Timeline, KPIs, AI acceptance and response time | Generate report and handover            |
 
-|**Stage**|**Required capabilities**|**State changes**|
-|---|---|---|
-|Shift start|Confrm role, zone, equipment, and briefng|Volunteer status becomes available|
-|Task receive|See priority, location, route, SLA, and recommended action|Task becomes delivered|
-|Task accept|Acknowledge and navigate|Task becomes accepted and operator sees owner|
-|Fan support|Translate, navigate, or consult procedure|Assistance interaction is logged minimally|
-|Incident report|Text/voice/image, category, location, severity|Incident is validated, classifed, and queued|
-|Escalation|Request security, medical, maintenance, or supervisor|Escalation is routed and auditable|
-|Resolution|Add outcome and close task|Incident or task becomes resolved|
-|Shift handover|Summarize open tasks and notable events|Structured handover record is created|
+### **7. Connected Gate C scenario state machine**
 
+###### NORMAL
 
+- -> RISING_DENSITY when arrivalRate and density cross warning threshold
 
-### **6. Operator journey** 
+- -> PREDICTED_CONGESTION when forecast exceeds threshold within 15 minutes
 
-|**Stage**|**Operator view**|**Permitted action**|
-|---|---|---|
-|Monitor|Digital twin, feeds, queue, incidents, volunteers, transport|Filter, inspect, compare, replay|
-|Predict|5/15/30 minute risk and confdence|Request explanation or alternative plan|
+- -> PLAN_PROPOSED when AI generates redirect and staffing recommendation
 
+- -> PLAN_APPROVED when operator approves or modifies plan
 
+- -> EXECUTING when gate status, tasks, alerts, and routes update
 
-Implementation-ready specification  |  Claude input pack Page 3 
+- -> STABILIZING when measured density trend decreases
 
-**FANAXO AI  /  BUILD SPEC 03** 
+-> RESOLVED when density remains below threshold for configured period
 
-|**Stage**|**Operator view**|**Permitted action**|
-|---|---|---|
-|Decide|AI recommendation and operational constraints|Approve, modify, reject, or defer|
-|Coordinate|Available volunteers and response teams|Assign tasks and targeted instructions|
-|Communicate|Audience, language, channel, message preview|Approve localized alert or announcement|
-|Resolve|Outcome, remaining risk, evidence|Mark resolved or reopen|
-|Review|Timeline, KPIs, AI acceptance and response time|Generate report and handover|
+Any state -> ESCALATED when safety threshold or critical incident occurs Any nonfinal state -> CANCELLED only by authorized operator with reason
 
+#### **7.1 Cross-role consequences**
 
+- Fan: route, queue estimate, notification, and accessible alternative update.
 
-### **7. Connected Gate C scenario state machine** 
+- Volunteer: two tasks appear with zone, priority, instructions, and acceptance state.
 
-###### NORMAL 
+- Operator: recommendation, confirmation, action status, predicted effect, and audit timeline update.
 
-- -> RISING_DENSITY        when arrivalRate and density cross warning threshold 
+- Simulation: path costs and spawn destinations change; density trends recalculate.
 
-- -> PREDICTED_CONGESTION  when forecast exceeds threshold within 15 minutes 
+- Reports: incident and response metrics update after resolution.
 
-- -> PLAN_PROPOSED         when AI generates redirect and staffing recommendation 
+### **8. Navigation and state preservation**
 
-- -> PLAN_APPROVED         when operator approves or modifies plan 
+- Use URL routes for durable screens; do not hide the entire application inside a single modal or dashboard state.
 
-- -> EXECUTING             when gate status, tasks, alerts, and routes update 
+- Preserve drafts, filters, map position, and selected incident when users navigate back.
 
-- -> STABILIZING           when measured density trend decreases 
+- Role switching is available only in demo mode and must clear or isolate privileged state.
 
--> RESOLVED              when density remains below threshold for configured period 
+- Deep links to protected screens must redirect to the appropriate login and return after successful authentication.
 
-Any state -> ESCALATED when safety threshold or critical incident occurs Any nonfinal state -> CANCELLED only by authorized operator with reason 
+- Do not place secrets, raw ticket tokens, OTPs, or personal data in query strings.
 
-#### **7.1 Cross-role consequences** 
+- Use route-level error boundaries and meaningful not-found and forbidden screens.
 
-- Fan: route, queue estimate, notification, and accessible alternative update. 
+### **9. Required edge cases**
 
-- Volunteer: two tasks appear with zone, priority, instructions, and acceptance state. 
+| **Area** | **Edge case**                                                   | **Expected behavior**                                   |
+| -------- | --------------------------------------------------------------- | ------------------------------------------------------- |
+| Ticket   | Invalid, expired, duplicate, wrong venue,<br>ofline verifcation | Specifc safe error and guest/static fallback            |
+| Route    | Gate closes mid-route, lift unavailable, no<br>safe alternate   | Recalculate or request staf; never invent path          |
+| AI       | Low confdence, no verifed source, unsafe<br>request             | Say unavailable, escalate, or provide approved fallback |
+| Incident | Duplicate reports, missing location,<br>malicious upload        | Merge suggestion, validation, quarantine/reject upload  |
 
-- Operator: recommendation, confirmation, action status, predicted effect, and audit timeline update. 
+Implementation-ready specification | Claude input pack Page 4
 
-- Simulation: path costs and spawn destinations change; density trends recalculate. 
+|               |                                                 | **FANAXO AI / BUILD SPEC 03**                            |
+| ------------- | ----------------------------------------------- | -------------------------------------------------------- |
+| **Area**      | **Edge case**                                   | **Expected behavior**                                    |
+| Realtime      | Disconnected or out-of-order events             | Show stale state and reconcile by event version          |
+| Permissions   | Volunteer attempts operator action              | Server rejects, UI explains access limit, audit optional |
+| Accessibility | Reduced motion, keyboard-only, screen<br>reader | Equivalent nonanimated and nonpointer fow                |
+| Performance   | Low-end device or WebGL unavailable             | 2D simulation and reduced agent count                    |
+| Localization  | Long translated text and RTL language           | Flexible layout and correct reading direction            |
 
-- Reports: incident and response metrics update after resolution. 
+### **10. Screen-level completion rule**
 
-### **8. Navigation and state preservation** 
+- A screen is incomplete if its main CTA is decorative.
 
-- Use URL routes for durable screens; do not hide the entire application inside a single modal or dashboard state. 
+- A dashboard is incomplete if it shows data but cannot complete its primary job.
 
-- Preserve drafts, filters, map position, and selected incident when users navigate back. 
+- An AI screen is incomplete if responses are unstructured, ungrounded, or disconnected from actions.
 
-- Role switching is available only in demo mode and must clear or isolate privileged state. 
+- A role flow is incomplete if the user cannot recover from an error or sign out.
 
-- Deep links to protected screens must redirect to the appropriate login and return after successful authentication. 
+- The application is incomplete if cross-role state requires manual page refresh.
 
-- Do not place secrets, raw ticket tokens, OTPs, or personal data in query strings. 
+- Every screen must have loading, empty, error, success, and permission-aware states as applicable.
 
-- Use route-level error boundaries and meaningful not-found and forbidden screens. 
+##### **CLAUDE EXECUTION RULE**
 
-### **9. Required edge cases** 
+Treat every MUST statement as an acceptance criterion. Do not replace functional workflows with static mockups. Do not claim completion until the relevant tests, security checks, accessibility checks, linting, type-checking, and production build all pass.
 
-|**Area**|**Edge case**|**Expected behavior**|
-|---|---|---|
-|Ticket|Invalid, expired, duplicate, wrong venue,<br>ofline verifcation|Specifc safe error and guest/static fallback|
-|Route|Gate closes mid-route, lift unavailable, no<br>safe alternate|Recalculate or request staf; never invent path|
-|AI|Low confdence, no verifed source, unsafe<br>request|Say unavailable, escalate, or provide approved fallback|
-|Incident|Duplicate reports, missing location,<br>malicious upload|Merge suggestion, validation, quarantine/reject upload|
-
-
-
-Implementation-ready specification  |  Claude input pack Page 4 
-
-|||**FANAXO AI  /  BUILD SPEC 03**|
-|---|---|---|
-|**Area**|**Edge case**|**Expected behavior**|
-|Realtime|Disconnected or out-of-order events|Show stale state and reconcile by event version|
-|Permissions|Volunteer attempts operator action|Server rejects, UI explains access limit, audit optional|
-|Accessibility|Reduced motion, keyboard-only, screen<br>reader|Equivalent nonanimated and nonpointer fow|
-|Performance|Low-end device or WebGL unavailable|2D simulation and reduced agent count|
-|Localization|Long translated text and RTL language|Flexible layout and correct reading direction|
-
-
-
-### **10. Screen-level completion rule** 
-
-- A screen is incomplete if its main CTA is decorative. 
-
-- A dashboard is incomplete if it shows data but cannot complete its primary job. 
-
-- An AI screen is incomplete if responses are unstructured, ungrounded, or disconnected from actions. 
-
-- A role flow is incomplete if the user cannot recover from an error or sign out. 
-
-- The application is incomplete if cross-role state requires manual page refresh. 
-
-- Every screen must have loading, empty, error, success, and permission-aware states as applicable. 
-
-##### **CLAUDE EXECUTION RULE** 
-
-Treat every MUST statement as an acceptance criterion. Do not replace functional workflows with static mockups. Do not claim completion until the relevant tests, security checks, accessibility checks, linting, type-checking, and production build all pass. 
-
-Implementation-ready specification  |  Claude input pack Page 5 
-
+Implementation-ready specification | Claude input pack Page 5

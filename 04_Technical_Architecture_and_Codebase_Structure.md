@@ -1,327 +1,314 @@
-**FANAXO AI  /  BUILD SPEC 04** 
+**FANAXO AI / BUILD SPEC 04**
 
-# **04** 
+# **04**
 
-## **Technical Architecture and Codebase Structure** 
+## **Technical Architecture and Codebase Structure**
 
-**Defines modular boundaries, repository organization, coding standards, and performance-aware platform architecture.** 
+**Defines modular boundaries, repository organization, coding standards, and performance-aware platform architecture.**
 
-### **Evaluation Priority Order** 
+### **Evaluation Priority Order**
 
-**QUALITY TARGET: Build for the maximum possible evaluation score. No document can guarantee a numerical score, but the implementation must provide objective evidence for every criterion and must not be submitted while any highor medium-impact release gate is failing.** 
+**QUALITY TARGET: Build for the maximum possible evaluation score. No document can guarantee a numerical score, but the implementation must provide objective evidence for every criterion and must not be submitted while any highor medium-impact release gate is failing.**
 
-|**Impact**|**Criterion**|**Non-negotiable evidence**|
-|---|---|---|
-|**HIGH**|**Code Quality**|Clean, readable, modular, SOLID, strictly<br>typed, documented, and easyto extend.|
-|**HIGH**|**Problem Statement Alignment**|Directly solves live stadium needs for fans,<br>volunteers, operators, organizers, and<br>venue staf.|
-|**MEDIUM**|**Security**|Least privilege, server-side authorization,<br>validation, safe sessions, secure AI tools,<br>and auditability.|
-|**MEDIUM**|**Eficiency**|Fast loading, bounded memory/CPU use,<br>optimized realtime updates, and browser-<br>safe simulation.|
-|**LOW**|**Testing and Maintainability**|Automated validation of critical paths,<br>deterministic demos, and maintainable<br>contracts.|
-|**LOW**|**Accessibility**|WCAG 2.2 AA, keyboard and screen-reader<br>support, reduced motion, and inclusive<br>routing.|
+| **Impact** | **Criterion**                   | **Non-negotiable evidence**                                                                                     |
+| ---------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **HIGH**   | **Code Quality**                | Clean, readable, modular, SOLID, strictly<br>typed, documented, and easyto extend.                              |
+| **HIGH**   | **Problem Statement Alignment** | Directly solves live stadium needs for fans,<br>volunteers, operators, organizers, and<br>venue staf.           |
+| **MEDIUM** | **Security**                    | Least privilege, server-side authorization,<br>validation, safe sessions, secure AI tools,<br>and auditability. |
+| **MEDIUM** | **Eficiency**                   | Fast loading, bounded memory/CPU use,<br>optimized realtime updates, and browser-<br>safe simulation.           |
+| **LOW**    | **Testing and Maintainability** | Automated validation of critical paths,<br>deterministic demos, and maintainable<br>contracts.                  |
+| **LOW**    | **Accessibility**               | WCAG 2.2 AA, keyboard and screen-reader<br>support, reduced motion, and inclusive<br>routing.                   |
 
+#### **Submission release gates**
 
+- Code Quality gate: strict TypeScript passes with zero errors; no any, @ts-ignore, circular dependencies, god components, duplicated business rules, or unexplained console warnings.
 
-#### **Submission release gates** 
+- Alignment gate: the connected Gate C workflow works end-to-end and visibly benefits all three portals through shared state, not independent mock animations.
 
-- Code Quality gate: strict TypeScript passes with zero errors; no any, @ts-ignore, circular dependencies, god components, duplicated business rules, or unexplained console warnings. 
+- Security gate: authorization is enforced on the server for every privileged operation; secrets are absent from client bundles and repository history; high-severity findings are zero.
 
-- Alignment gate: the connected Gate C workflow works end-to-end and visibly benefits all three portals through shared state, not independent mock animations. 
+- Efficiency gate: production build meets defined web performance and simulation budgets; no full React render per simulation frame; listeners, timers, and workers are cleaned up.
 
-- Security gate: authorization is enforced on the server for every privileged operation; secrets are absent from client bundles and repository history; high-severity findings are zero. 
+- Testing gate: critical domain, API, authorization, and connected E2E scenarios pass deterministically in CI.
 
-- Efficiency gate: production build meets defined web performance and simulation budgets; no full React render per simulation frame; listeners, timers, and workers are cleaned up. 
+- Accessibility gate: automated axe checks pass for critical screens and manual keyboard, focus, announcement, contrast, and reduced-motion checks are completed.
 
-- Testing gate: critical domain, API, authorization, and connected E2E scenarios pass deterministically in CI. 
+**Product**
 
-- Accessibility gate: automated axe checks pass for critical screens and manual keyboard, focus, announcement, contrast, and reduced-motion checks are completed. 
+Fanaxo AI - GenAI stadium operations and matchday experience platform
 
-**Product** 
+**Primary quality gates**
 
-Fanaxo AI - GenAI stadium operations and matchday experience platform 
+Code Quality | Security | Efficiency | Testing | Accessibility |
 
-**Primary quality gates** 
+Implementation-ready specification | Claude input pack Page 1
 
-Code Quality | Security | Efficiency | Testing | Accessibility | 
+**FANAXO AI / BUILD SPEC 04**
 
-Implementation-ready specification  |  Claude input pack Page 1 
+Problem Statement Alignment
 
-**FANAXO AI  /  BUILD SPEC 04** 
+### **1. Recommended implementation stack**
 
-Problem Statement Alignment 
+| **Layer**     | **Default choice**                                                             | **Reason**                                                          |
+| ------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Web framework | Next.js App Router with React and TypeScript                                   | Server/client boundaries, routing, streaming, deployment fexibility |
+| Styling       | Tailwind CSS plus design tokens                                                | Consistent responsive UI without one-of styles                      |
+| Motion        | Framer Motion; GSAP only for isolated<br>timelines                             | Maintainable animations and reduced-motion support                  |
+| Simulation    | Canvas or React Three Fiber with Web Worker                                    | Eficient agent rendering and separated computation                  |
+| Client state  | Zustand for UI/demo state; TanStack Query for<br>server state                  | Clear separation and predictable caching                            |
+| API           | Next.js route handlers or separate FastAPI<br>adapter if already required      | Typed contracts and simple deployment                               |
+| Database      | PostgreSQL with Prisma or Drizzle                                              | Relational integrity and migrations                                 |
+| Validation    | Zod at every trust boundary                                                    | Runtime and TypeScript contract alignment                           |
+| Testing       | Vitest, Testing Library, Playwright, axe-core,<br>MSW                          | Complete test pyramid                                               |
+| Observability | Structured logs, OpenTelemetry-compatible<br>tracing, Sentry-compatible errors | Debuggability and auditability                                      |
 
-### **1. Recommended implementation stack** 
+Implementation-ready specification | Claude input pack Page 2
 
-|**Layer**|**Default choice**|**Reason**|
-|---|---|---|
-|Web framework|Next.js App Router with React and TypeScript|Server/client boundaries, routing, streaming, deployment fexibility|
-|Styling|Tailwind CSS plus design tokens|Consistent responsive UI without one-of styles|
-|Motion|Framer Motion; GSAP only for isolated<br>timelines|Maintainable animations and reduced-motion support|
-|Simulation|Canvas or React Three Fiber with Web Worker|Eficient agent rendering and separated computation|
-|Client state|Zustand for UI/demo state; TanStack Query for<br>server state|Clear separation and predictable caching|
-|API|Next.js route handlers or separate FastAPI<br>adapter if already required|Typed contracts and simple deployment|
-|Database|PostgreSQL with Prisma or Drizzle|Relational integrity and migrations|
-|Validation|Zod at every trust boundary|Runtime and TypeScript contract alignment|
-|Testing|Vitest, Testing Library, Playwright, axe-core,<br>MSW|Complete test pyramid|
-|Observability|Structured logs, OpenTelemetry-compatible<br>tracing, Sentry-compatible errors|Debuggability and auditability|
+**FANAXO AI / BUILD SPEC 04**
 
+### **2. Repository structure**
 
+| fanaxo/<br>apps/                                            |
+| ----------------------------------------------------------- |
+| web/                                                        |
+| src/app/ # route groups and layouts                         |
+| src/features/ # role and domain feature modules             |
+| src/server/ # server-only actions, auth, services           |
+| src/components/ # app-level composition components          |
+| src/styles/ # global styles and tokens                      |
+| public/ # optimized static assets only                      |
+| worker/ # optional realtime or simulation service           |
+| packages/                                                   |
+| ui/ # accessible design-system primitives                   |
+| domain/ # pure entities, rules, state machines              |
+| contracts/ # Zod schemas and API/event types                |
+| auth/ # session and permission utilities                    |
+| ai/ # prompts, tools, guardrails, evaluations               |
+| simulation/ # graph, agents, density and forecasts          |
+| observability/ # logging, tracing and audit helpers<br>     |
+| confg/ # shared lint, TS and test confguration              |
+| prisma/ or db/                                              |
+| schema, migrations, seed                                    |
+| tests/                                                      |
+| e2e, performance, security, accessibility                   |
+| docs/                                                       |
+| ADRs, threat model, runbook, API notes<br>.github/workfows/ |
+| package.json                                                |
+| pnpm-workspace.yaml                                         |
+| turbo.json                                                  |
 
-Implementation-ready specification  |  Claude input pack Page 2 
+### **3. Feature module boundaries**
 
-**FANAXO AI  /  BUILD SPEC 04** 
+| **Module**   | **Owns**                                                  | **Must not own**                         |
+| ------------ | --------------------------------------------------------- | ---------------------------------------- |
+| auth         | Sessions, identity, roles, permissions                    | UI feature logic or AI prompts           |
+| tickets      | Ticket verifcation and fan context                        | Raw QR rendering behavior                |
+| venues       | Zones, gates, facilities, route graph                     | Operator permissions                     |
+| crowd        | Snapshots, density, forecasts, thresholds                 | Presentation-only colors                 |
+| incidents    | Incident lifecycle, assignment, resolution                | AI vendor-specifc response objects       |
+| tasks        | Volunteer work lifecycle                                  | Authentication                           |
+| notifcations | Audience, channels, localization, delivery state          | Critical decisions without authorization |
+| ai           | Grounding, tools, structured recommendations, evaluations | Direct database access outside tools     |
+| simulation   | Agents, graph weights, event-driven updates               | React component state                    |
+| reporting    | Metrics and summaries                                     | Mutating operational state               |
 
-### **2. Repository structure** 
+Implementation-ready specification | Claude input pack Page 3
 
-|fanaxo/<br>apps/|
-|---|
-|web/|
-|src/app/                 # route groups and layouts|
-|src/features/            # role and domain feature modules|
-|src/server/              # server-only actions, auth, services|
-|src/components/          # app-level composition components|
-|src/styles/              # global styles and tokens|
-|public/                  # optimized static assets only|
-|worker/                    # optional realtime or simulation service|
-|packages/|
-|ui/                        # accessible design-system primitives|
-|domain/                    # pure entities, rules, state machines|
-|contracts/                 # Zod schemas and API/event types|
-|auth/                      # session and permission utilities|
-|ai/                        # prompts, tools, guardrails, evaluations|
-|simulation/                # graph, agents, density and forecasts|
-|observability/             # logging, tracing and audit helpers<br>|
-|confg/                    # shared lint, TS and test confguration|
-|prisma/ or db/|
-|schema, migrations, seed|
-|tests/|
-|e2e, performance, security, accessibility|
-|docs/|
-|ADRs, threat model, runbook, API notes<br>.github/workfows/|
-|package.json|
-|pnpm-workspace.yaml|
-|turbo.json|
+**FANAXO AI / BUILD SPEC 04**
 
+### **4. Code quality rules**
 
+- Enable TypeScript strict mode, noUncheckedIndexedAccess, exactOptionalPropertyTypes, and consistent module resolution.
 
-### **3. Feature module boundaries** 
+- Avoid any. Use unknown plus validation when input type is uncertain.
 
-|**Module**|**Owns**|**Must not own**|
-|---|---|---|
-|auth|Sessions, identity, roles, permissions|UI feature logic or AI prompts|
-|tickets|Ticket verifcation and fan context|Raw QR rendering behavior|
-|venues|Zones, gates, facilities, route graph|Operator permissions|
-|crowd|Snapshots, density, forecasts, thresholds|Presentation-only colors|
-|incidents|Incident lifecycle, assignment, resolution|AI vendor-specifc response objects|
-|tasks|Volunteer work lifecycle|Authentication|
-|notifcations|Audience, channels, localization, delivery state|Critical decisions without authorization|
-|ai|Grounding, tools, structured recommendations, evaluations|Direct database access outside tools|
-|simulation|Agents, graph weights, event-driven updates|React component state|
-|reporting|Metrics and summaries|Mutating operational state|
+- Keep domain rules as pure functions or explicit services that can be unit tested without React or database setup.
 
+- Do not place business logic inside UI components, route pages, or animation callbacks.
 
+- Use dependency injection through constructor parameters or explicit function arguments for external services.
 
-Implementation-ready specification  |  Claude input pack Page 3 
+- Prefer named exports, meaningful domain names, and small cohesive modules.
 
-**FANAXO AI  /  BUILD SPEC 04** 
+- Limit files to a clear responsibility; split files that combine data access, business decisions, and rendering.
 
-### **4. Code quality rules** 
+- Use exhaustive checks for state-machine and role unions.
 
-- Enable TypeScript strict mode, noUncheckedIndexedAccess, exactOptionalPropertyTypes, and consistent module resolution. 
+- Centralize error types, HTTP mapping, user-safe messages, and telemetry metadata.
 
-- Avoid any. Use unknown plus validation when input type is uncertain. 
+- Document non-obvious algorithms and architecture decisions, not self-evident syntax.
 
-- Keep domain rules as pure functions or explicit services that can be unit tested without React or database setup. 
+### **5. Server and client boundaries**
 
-- Do not place business logic inside UI components, route pages, or animation callbacks. 
+- Keep database clients, credentials, authorization, AI API keys, signing keys, and audit writers in server-only modules.
 
-- Use dependency injection through constructor parameters or explicit function arguments for external services. 
+- Client components receive the minimum serializable data needed to render.
 
-- Prefer named exports, meaningful domain names, and small cohesive modules. 
+- All mutations use server actions or authenticated API routes that validate input and permission.
 
-- Limit files to a clear responsibility; split files that combine data access, business decisions, and rendering. 
+- Never trust role, venue ID, ticket owner, or incident severity supplied by the browser.
 
-- Use exhaustive checks for state-machine and role unions. 
+- Use secure caching rules. Personal or operationally sensitive responses must not be publicly cached.
 
-- Centralize error types, HTTP mapping, user-safe messages, and telemetry metadata. 
+- Prefer server components for static or initial data and client components only for interaction, animation, maps, and realtime state.
 
-- Document non-obvious algorithms and architecture decisions, not self-evident syntax. 
+### **6. Domain architecture**
 
-### **5. Server and client boundaries** 
+#### **6.1 Pure decision flow**
 
-- Keep database clients, credentials, authorization, AI API keys, signing keys, and audit writers in server-only modules. 
+- Input event -> validate contract
 
-- Client components receive the minimum serializable data needed to render. 
+- -> authenticate actor
 
-- All mutations use server actions or authenticated API routes that validate input and permission. 
+- -> authorize action and resource scope
 
-- Never trust role, venue ID, ticket owner, or incident severity supplied by the browser. 
+- -> load current aggregate/version
 
-- Use secure caching rules. Personal or operationally sensitive responses must not be publicly cached. 
+- -> apply domain rule or state transition
 
-- Prefer server components for static or initial data and client components only for interaction, animation, maps, and realtime state. 
+- -> persist transaction
 
-### **6. Domain architecture** 
+- -> append audit event
 
-#### **6.1 Pure decision flow** 
+- -> publish versioned realtime event
 
-- Input event -> validate contract 
+- -> return safe response
 
-- -> authenticate actor 
+#### **6.2 Key state machines**
 
-- -> authorize action and resource scope 
+- Incident: reported -> triaged -> assigned -> acknowledged -> responding -> resolved -> reopened.
 
-- -> load current aggregate/version 
+- Volunteer task: created -> delivered -> accepted -> in_progress -> completed or escalated or cancelled.
 
-- -> apply domain rule or state transition 
+- AI recommendation: generated -> awaiting_approval -> approved or modified or rejected -> executing -> measured -> closed.
 
-- -> persist transaction 
+- Gate: open -> restricted -> closed -> reopening -> open.
 
-- -> append audit event 
+- Data feed: live -> delayed -> stale -> unavailable -> recovering -> live.
 
-- -> publish versioned realtime event 
+### **7. Realtime architecture**
 
-- -> return safe response 
+- Use a typed event envelope with event ID, type, version, aggregate ID, venue ID, timestamp, correlation ID, and payload.
 
-#### **6.2 Key state machines** 
+- Use Server-Sent Events or WebSockets for the hackathon; hide the transport behind an adapter.
 
-- Incident: reported -> triaged -> assigned -> acknowledged -> responding -> resolved -> reopened. 
+- Every event is idempotent and versioned to handle reconnects and out-of-order delivery.
 
-- Volunteer task: created -> delivered -> accepted -> in_progress -> completed or escalated or cancelled. 
+- The client keeps a last-seen version and requests a snapshot when it detects a gap.
 
-- AI recommendation: generated -> awaiting_approval -> approved or modified or rejected -> executing -> measured -> closed. 
+- Do not push secrets, sensitive ticket fields, or unrelated venue data through broad channels.
 
-- Gate: open -> restricted -> closed -> reopening -> open. 
+- Partition subscriptions by venue and role-relevant topics.
 
-- Data feed: live -> delayed -> stale -> unavailable -> recovering -> live. 
+Implementation-ready specification | Claude input pack Page 4
 
-### **7. Realtime architecture** 
+**FANAXO AI / BUILD SPEC 04**
 
-- Use a typed event envelope with event ID, type, version, aggregate ID, venue ID, timestamp, correlation ID, and payload. 
+### **8. Efficiency and performance architecture**
 
-- Use Server-Sent Events or WebSockets for the hackathon; hide the transport behind an adapter. 
+| **Risk**                   | **Required mitigation**                                                           |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| Large 3D or agent load     | Instanced rendering, adaptive agent count, Web Worker updates, 2D fallback        |
+| Dashboard re-render storms | Selector-based state subscriptions, memoized derived data, batched events         |
+| Heavy route graph          | Precomputed adjacency, A* or Dijkstra with cached static costs and live deltas    |
+| Repeated AI requests       | Cache safe grounded answers, stream responses, use small models for classifcation |
+| Large initial bundle       | Route-based splitting, lazy 3D import, optimized assets, no unused libraries      |
+| Realtime backpressure      | Aggregate frequent telemetry into snapshots; throttle visual updates              |
+| Database contention        | Indexes, bounded queries, transactions, optimistic concurrency                    |
+| Slow external feeds        | Timeouts, retries with jitter, circuit breakers, last-known-safe data             |
 
-- Every event is idempotent and versioned to handle reconnects and out-of-order delivery. 
+### **9. Error handling and observability**
 
-- The client keeps a last-seen version and requests a snapshot when it detects a gap. 
+- Use structured JSON logs with severity, event, actor type, venue, correlation ID, and safe metadata.
 
-- Do not push secrets, sensitive ticket fields, or unrelated venue data through broad channels. 
+- Never log ticket tokens, OTPs, session cookies, raw prompts containing personal data, or uploaded file contents.
 
-- Partition subscriptions by venue and role-relevant topics. 
+- Create route-level and component-level error boundaries.
 
-Implementation-ready specification  |  Claude input pack Page 4 
+- Map internal errors to stable public error codes and recovery guidance.
 
-**FANAXO AI  /  BUILD SPEC 04** 
+- Track latency for ticket verification, route calculation, incident submission, event delivery, and AI response.
 
-### **8. Efficiency and performance architecture** 
+- Record audit events separately from debug logs and protect them from ordinary user modification.
 
-|**Risk**|**Required mitigation**|
-|---|---|
-|Large 3D or agent load|Instanced rendering, adaptive agent count, Web Worker updates, 2D fallback|
-|Dashboard re-render storms|Selector-based state subscriptions, memoized derived data, batched events|
-|Heavy route graph|Precomputed adjacency, A* or Dijkstra with cached static costs and live deltas|
-|Repeated AI requests|Cache safe grounded answers, stream responses, use small models for classifcation|
-|Large initial bundle|Route-based splitting, lazy 3D import, optimized assets, no unused libraries|
-|Realtime backpressure|Aggregate frequent telemetry into snapshots; throttle visual updates|
-|Database contention|Indexes, bounded queries, transactions, optimistic concurrency|
-|Slow external feeds|Timeouts, retries with jitter, circuit breakers, last-known-safe data|
+### **10. Engineering automation**
 
+Required local and CI commands: pnpm lint pnpm format:check pnpm typecheck pnpm test:unit pnpm test:integration pnpm test:e2e pnpm test:a11y pnpm test:security pnpm test:performance pnpm build pnpm analyze:bundle
 
+### **11. Architecture decision records**
 
-### **9. Error handling and observability** 
+- ADR-001: Why one shared platform with role-based interfaces.
 
-- Use structured JSON logs with severity, event, actor type, venue, correlation ID, and safe metadata. 
+- ADR-002: Realtime event transport and fallback.
 
-- Never log ticket tokens, OTPs, session cookies, raw prompts containing personal data, or uploaded file contents. 
+- ADR-003: 2D versus 3D simulation and performance thresholds.
 
-- Create route-level and component-level error boundaries. 
+- ADR-004: Ticket-based fan session without storing unnecessary personal data.
 
-- Map internal errors to stable public error codes and recovery guidance. 
+- ADR-005: Human approval and GenAI tool boundaries.
 
-- Track latency for ticket verification, route calculation, incident submission, event delivery, and AI response. 
+- ADR-006: Database and schema strategy.
 
-- Record audit events separately from debug logs and protect them from ordinary user modification. 
+- ADR-007: Deployment platform and secret management.
 
-### **10. Engineering automation** 
+### **12. Code review checklist**
 
-Required local and CI commands: pnpm lint pnpm format:check pnpm typecheck pnpm test:unit pnpm test:integration pnpm test:e2e pnpm test:a11y pnpm test:security pnpm test:performance pnpm build pnpm analyze:bundle 
+- [ ] Change has a clear feature or quality purpose.
 
-### **11. Architecture decision records** 
+Implementation-ready specification | Claude input pack Page 5
 
-- ADR-001: Why one shared platform with role-based interfaces. 
+**FANAXO AI / BUILD SPEC 04**
 
-- ADR-002: Realtime event transport and fallback. 
+- [ ] Domain rule is tested independently.
 
-- ADR-003: 2D versus 3D simulation and performance thresholds. 
+- [ ] Input is validated at the server boundary.
 
-- ADR-004: Ticket-based fan session without storing unnecessary personal data. 
+- [ ] Authorization is enforced on the server.
 
-- ADR-005: Human approval and GenAI tool boundaries. 
+- [ ] No secret or sensitive data reaches client or logs.
 
-- ADR-006: Database and schema strategy. 
+- [ ] Error and loading states are handled.
 
-- ADR-007: Deployment platform and secret management. 
+- [ ] Accessibility and keyboard behavior are tested.
 
-### **12. Code review checklist** 
+- [ ] Performance impact is measured for simulation or large UI changes.
 
-- [ ] Change has a clear feature or quality purpose. 
+- [ ] New API or event contract is versioned and documented.
 
-Implementation-ready specification  |  Claude input pack Page 5 
+- [ ] CI passes without disabling rules or skipping tests.
 
-**FANAXO AI  /  BUILD SPEC 04** 
+##### **CLAUDE EXECUTION RULE**
 
-- [ ] Domain rule is tested independently. 
+Treat every MUST statement as an acceptance criterion. Do not replace functional workflows with static mockups. Do not claim completion until the relevant tests, security checks, accessibility checks, linting, type-checking, and production build all pass.
 
-- [ ] Input is validated at the server boundary. 
+### **High-Impact Code Quality Enforcement**
 
-- [ ] Authorization is enforced on the server. 
+- Adopt a ports-and-adapters architecture: domain and application layers must not import UI frameworks, database clients, AI SDKs, WebSocket libraries, or browser APIs.
 
-- [ ] No secret or sensitive data reaches client or logs. 
+- Enable ESLint rules for complexity, import boundaries, unused code, promises, unsafe TypeScript operations, React hooks, and accessibility.
 
-- [ ] Error and loading states are handled. 
+- Use dependency-cruiser or an equivalent boundary checker to prevent circular and forbidden imports.
 
-- [ ] Accessibility and keyboard behavior are tested. 
+- Require small, cohesive modules with explicit public APIs. Keep implementation details private to each feature.
 
-- [ ] Performance impact is measured for simulation or large UI changes. 
+- Use Result or discriminated-union outcomes for expected failures; reserve exceptions for truly exceptional failures.
 
-- [ ] New API or event contract is versioned and documented. 
+- Create ADRs for authentication, realtime transport, simulation architecture, AI provider abstraction, and persistence choice.
 
-- [ ] CI passes without disabling rules or skipping tests. 
+- Add code ownership and pull-request checks so architecture, security, tests, and accessibility cannot be bypassed.
 
-##### **CLAUDE EXECUTION RULE** 
+- Remove dead code, stale flags, commented-out implementations, placeholder handlers, and non-functional controls before submission.
 
-Treat every MUST statement as an acceptance criterion. Do not replace functional workflows with static mockups. Do not claim completion until the relevant tests, security checks, accessibility checks, linting, type-checking, and production build all pass. 
+### **Static Quality Budgets**
 
-### **High-Impact Code Quality Enforcement** 
+| **Measure**               | **Target**                        | **Blocking threshold**                               |
+| ------------------------- | --------------------------------- | ---------------------------------------------------- |
+| TypeScript errors         | 0                                 | Anyerror                                             |
+| ESLint errors             | 0                                 | Anyerror                                             |
+| Circular dependencies     | 0                                 | Anycycle                                             |
+| Cyclomatic complexity     | Prefer <= 8                       | No criticalpath > 12 without ADR                     |
+| Duplicated business logic | 0 known duplication               | Any security/authorization/domain rule<br>duplicated |
+| Public API documentation  | 100% of exported domain contracts | Missingcritical contract docs                        |
+| Production console errors | 0                                 | Anyunexplained error or warning                      |
 
-- Adopt a ports-and-adapters architecture: domain and application layers must not import UI frameworks, database clients, AI SDKs, WebSocket libraries, or browser APIs. 
-
-- Enable ESLint rules for complexity, import boundaries, unused code, promises, unsafe TypeScript operations, React hooks, and accessibility. 
-
-- Use dependency-cruiser or an equivalent boundary checker to prevent circular and forbidden imports. 
-
-- Require small, cohesive modules with explicit public APIs. Keep implementation details private to each feature. 
-
-- Use Result or discriminated-union outcomes for expected failures; reserve exceptions for truly exceptional failures. 
-
-- Create ADRs for authentication, realtime transport, simulation architecture, AI provider abstraction, and persistence choice. 
-
-- Add code ownership and pull-request checks so architecture, security, tests, and accessibility cannot be bypassed. 
-
-- Remove dead code, stale flags, commented-out implementations, placeholder handlers, and non-functional controls before submission. 
-
-### **Static Quality Budgets** 
-
-|**Measure**|**Target**|**Blocking threshold**|
-|---|---|---|
-|TypeScript errors|0|Anyerror|
-|ESLint errors|0|Anyerror|
-|Circular dependencies|0|Anycycle|
-|Cyclomatic complexity|Prefer <= 8|No criticalpath > 12 without ADR|
-|Duplicated business logic|0 known duplication|Any security/authorization/domain rule<br>duplicated|
-|Public API documentation|100% of exported domain contracts|Missingcritical contract docs|
-|Production console errors|0|Anyunexplained error or warning|
-
-
-
-Implementation-ready specification  |  Claude input pack Page 6 
-
+Implementation-ready specification | Claude input pack Page 6

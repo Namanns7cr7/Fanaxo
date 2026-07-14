@@ -1,301 +1,290 @@
-**FANAXO AI  /  BUILD SPEC 07** 
+**FANAXO AI / BUILD SPEC 07**
 
-# **07** 
+# **07**
 
-## **Security, Privacy and Accessibility Requirements** 
+## **Security, Privacy and Accessibility Requirements**
 
-**Provides the threat model and non-negotiable controls needed for a safe, inclusive production-style prototype.** 
+**Provides the threat model and non-negotiable controls needed for a safe, inclusive production-style prototype.**
 
-### **Evaluation Priority Order** 
+### **Evaluation Priority Order**
 
-**QUALITY TARGET: Build for the maximum possible evaluation score. No document can guarantee a numerical score, but the implementation must provide objective evidence for every criterion and must not be submitted while any highor medium-impact release gate is failing.** 
+**QUALITY TARGET: Build for the maximum possible evaluation score. No document can guarantee a numerical score, but the implementation must provide objective evidence for every criterion and must not be submitted while any highor medium-impact release gate is failing.**
 
-|**Impact**|**Criterion**|**Non-negotiable evidence**|
-|---|---|---|
-|**HIGH**|**Code Quality**|Clean, readable, modular, SOLID, strictly<br>typed, documented, and easyto extend.|
-|**HIGH**|**Problem Statement Alignment**|Directly solves live stadium needs for fans,<br>volunteers, operators, organizers, and<br>venue staf.|
-|**MEDIUM**|**Security**|Least privilege, server-side authorization,<br>validation, safe sessions, secure AI tools,<br>and auditability.|
-|**MEDIUM**|**Eficiency**|Fast loading, bounded memory/CPU use,<br>optimized realtime updates, and browser-<br>safe simulation.|
-|**LOW**|**Testing and Maintainability**|Automated validation of critical paths,<br>deterministic demos, and maintainable<br>contracts.|
-|**LOW**|**Accessibility**|WCAG 2.2 AA, keyboard and screen-reader<br>support, reduced motion, and inclusive<br>routing.|
+| **Impact** | **Criterion**                   | **Non-negotiable evidence**                                                                                     |
+| ---------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **HIGH**   | **Code Quality**                | Clean, readable, modular, SOLID, strictly<br>typed, documented, and easyto extend.                              |
+| **HIGH**   | **Problem Statement Alignment** | Directly solves live stadium needs for fans,<br>volunteers, operators, organizers, and<br>venue staf.           |
+| **MEDIUM** | **Security**                    | Least privilege, server-side authorization,<br>validation, safe sessions, secure AI tools,<br>and auditability. |
+| **MEDIUM** | **Eficiency**                   | Fast loading, bounded memory/CPU use,<br>optimized realtime updates, and browser-<br>safe simulation.           |
+| **LOW**    | **Testing and Maintainability** | Automated validation of critical paths,<br>deterministic demos, and maintainable<br>contracts.                  |
+| **LOW**    | **Accessibility**               | WCAG 2.2 AA, keyboard and screen-reader<br>support, reduced motion, and inclusive<br>routing.                   |
 
+#### **Submission release gates**
 
+- Code Quality gate: strict TypeScript passes with zero errors; no any, @ts-ignore, circular dependencies, god components, duplicated business rules, or unexplained console warnings.
 
-#### **Submission release gates** 
+- Alignment gate: the connected Gate C workflow works end-to-end and visibly benefits all three portals through shared state, not independent mock animations.
 
-- Code Quality gate: strict TypeScript passes with zero errors; no any, @ts-ignore, circular dependencies, god components, duplicated business rules, or unexplained console warnings. 
+- Security gate: authorization is enforced on the server for every privileged operation; secrets are absent from client bundles and repository history; high-severity findings are zero.
 
-- Alignment gate: the connected Gate C workflow works end-to-end and visibly benefits all three portals through shared state, not independent mock animations. 
+- Efficiency gate: production build meets defined web performance and simulation budgets; no full React render per simulation frame; listeners, timers, and workers are cleaned up.
 
-- Security gate: authorization is enforced on the server for every privileged operation; secrets are absent from client bundles and repository history; high-severity findings are zero. 
+- Testing gate: critical domain, API, authorization, and connected E2E scenarios pass deterministically in CI.
 
-- Efficiency gate: production build meets defined web performance and simulation budgets; no full React render per simulation frame; listeners, timers, and workers are cleaned up. 
+- Accessibility gate: automated axe checks pass for critical screens and manual keyboard, focus, announcement, contrast, and reduced-motion checks are completed.
 
-- Testing gate: critical domain, API, authorization, and connected E2E scenarios pass deterministically in CI. 
+**Product**
 
-- Accessibility gate: automated axe checks pass for critical screens and manual keyboard, focus, announcement, contrast, and reduced-motion checks are completed. 
+Fanaxo AI - GenAI stadium operations and matchday experience platform
 
-**Product** 
+**Primary quality gates**
 
-Fanaxo AI - GenAI stadium operations and matchday experience platform 
+Code Quality | Security | Efficiency | Testing | Accessibility |
 
-**Primary quality gates** 
+Implementation-ready specification | Claude input pack Page 1
 
-Code Quality | Security | Efficiency | Testing | Accessibility | 
+**FANAXO AI / BUILD SPEC 07**
 
-Implementation-ready specification  |  Claude input pack Page 1 
+Problem Statement Alignment
 
-**FANAXO AI  /  BUILD SPEC 07** 
+### **1. Security objectives**
 
-Problem Statement Alignment 
+- Prevent unauthorized access across fan, volunteer, operator, venue, and resource scopes.
 
-### **1. Security objectives** 
+- Protect ticket tokens, sessions, personal preferences, operational data, credentials, and AI keys.
 
-- Prevent unauthorized access across fan, volunteer, operator, venue, and resource scopes. 
+- Ensure operational actions are authenticated, authorized, validated, confirmed, and auditable.
 
-- Protect ticket tokens, sessions, personal preferences, operational data, credentials, and AI keys. 
+- Maintain service availability under malformed inputs, abuse, AI cost attacks, and realtime load.
 
-- Ensure operational actions are authenticated, authorized, validated, confirmed, and auditable. 
+- Limit blast radius through least privilege and separation of client, server, AI, data, and simulation components.
 
-- Maintain service availability under malformed inputs, abuse, AI cost attacks, and realtime load. 
+- Fail safely when authentication, feeds, AI, database, or realtime delivery is unavailable.
 
-- Limit blast radius through least privilege and separation of client, server, AI, data, and simulation components. 
+### **2. Threat model**
 
-- Fail safely when authentication, feeds, AI, database, or realtime delivery is unavailable. 
+| **Asset or surface** | **Example threat**                                       | **Required control**                                                      |
+| -------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Fan ticket QR        | Enumeration, replay, token theft, malicious<br>payload   | Opaque token, hash at rest, rate limit, short session, safe parser        |
+| Volunteer login      | Credential stufing or stolen badge                       | OTP/MFA simulation, lockout/rate limit, session rotation                  |
+| Operator actions     | Privilege escalation or CSRF                             | Server RBAC/ABAC, secure cookies, CSRF defense,<br>reauth/confrmation     |
+| APIs                 | IDOR, injection, mass assignment                         | Ownership checks, Zod validation, ORM parameterization, explicit<br>felds |
+| File uploads         | Malware, oversized fles, SVG/script, metadata<br>leakage | Allowlist, size limits, scan, isolate, re-encode, delete                  |
+| AI tools             | Prompt injection and unauthorized action                 | Tool allowlist, policy gate, role checks, structured output               |
+| Realtime channel     | Cross-venue leakage, spoofng, replay                     | Authenticated subscriptions, topic scope, event IDs and versions          |
+| Browser              | XSS, clickjacking, insecure dependency                   | CSP, output encoding, frame policy, dependency scanning                   |
+| Logs                 | Secret or PII exposure                                   | Structured redaction, access control, retention                           |
+| Supply chain         | Compromised package or CI secret                         | Lockfle, pinning, provenance where possible, secret scanning              |
 
-### **2. Threat model** 
+### **3. Authentication and session controls**
 
-|**Asset or surface**|**Example threat**|**Required control**|
-|---|---|---|
-|Fan ticket QR|Enumeration, replay, token theft, malicious<br>payload|Opaque token, hash at rest, rate limit, short session, safe parser|
-|Volunteer login|Credential stufing or stolen badge|OTP/MFA simulation, lockout/rate limit, session rotation|
-|Operator actions|Privilege escalation or CSRF|Server RBAC/ABAC, secure cookies, CSRF defense,<br>reauth/confrmation|
-|APIs|IDOR, injection, mass assignment|Ownership checks, Zod validation, ORM parameterization, explicit<br>felds|
-|File uploads|Malware, oversized fles, SVG/script, metadata<br>leakage|Allowlist, size limits, scan, isolate, re-encode, delete|
-|AI tools|Prompt injection and unauthorized action|Tool allowlist, policy gate, role checks, structured output|
-|Realtime channel|Cross-venue leakage, spoofng, replay|Authenticated subscriptions, topic scope, event IDs and versions|
-|Browser|XSS, clickjacking, insecure dependency|CSP, output encoding, frame policy, dependency scanning|
-|Logs|Secret or PII exposure|Structured redaction, access control, retention|
-|Supply chain|Compromised package or CI secret|Lockfle, pinning, provenance where possible, secret scanning|
+- Use a maintained authentication library or provider; do not create custom password cryptography.
 
+- Use Secure, HttpOnly, SameSite cookies in deployed environments.
 
+- Rotate session identifiers after authentication and privilege changes.
 
-### **3. Authentication and session controls** 
+- Apply short expiration to fan ticket sessions and appropriate inactivity/absolute timeouts to staff sessions.
 
-- Use a maintained authentication library or provider; do not create custom password cryptography. 
+- Require MFA or simulated MFA for operators and privileged demo accounts.
 
-- Use Secure, HttpOnly, SameSite cookies in deployed environments. 
+- Do not store access tokens in localStorage.
 
-- Rotate session identifiers after authentication and privilege changes. 
+- Provide logout that invalidates server session, not only client state.
 
-- Apply short expiration to fan ticket sessions and appropriate inactivity/absolute timeouts to staff sessions. 
+- Protect demo credentials from production deployment and clearly separate demo mode.
 
-- Require MFA or simulated MFA for operators and privileged demo accounts. 
+### **4. Authorization model**
 
-- Do not store access tokens in localStorage. 
+- Use role plus venue scope plus resource ownership and action policy.
 
-- Provide logout that invalidates server session, not only client state. 
+- Deny by default and permit only explicit actions.
 
-- Protect demo credentials from production deployment and clearly separate demo mode. 
+- Check authorization on every server mutation and sensitive read.
 
-### **4. Authorization model** 
+- Never trust hidden UI, route guards, client role fields, or disabled buttons as enforcement.
 
-- Use role plus venue scope plus resource ownership and action policy. 
+- Add negative tests for IDOR: change venueId, ticketId, taskId, incidentId, and userId.
 
-- Deny by default and permit only explicit actions. 
+- Separate operator roles if time permits: viewer, dispatcher, supervisor, administrator.
 
-- Check authorization on every server mutation and sensitive read. 
+Implementation-ready specification | Claude input pack Page 2
 
-- Never trust hidden UI, route guards, client role fields, or disabled buttons as enforcement. 
+**FANAXO AI / BUILD SPEC 07**
 
-- Add negative tests for IDOR: change venueId, ticketId, taskId, incidentId, and userId. 
+-
 
-- Separate operator roles if time permits: viewer, dispatcher, supervisor, administrator. 
+- Require reason and confirmation for gate state changes, mass notifications, and incident overrides.
 
-Implementation-ready specification  |  Claude input pack Page 2 
+### **5. Web and API security controls**
 
-**FANAXO AI  /  BUILD SPEC 07** 
+| **Control**  | **Implementation expectation**                                                                       |
+| ------------ | ---------------------------------------------------------------------------------------------------- |
+| Validation   | Zod schemas, length/range limits, enum allowlists, reject unknown felds where appropriate            |
+| XSS          | React escaping, no unsafe HTML, sanitize approved rich content, never render untrusted SVG           |
+| CSP          | Restrictive default-src, script nonces/hashes as needed, connect-src allowlist, frame-ancestors none |
+| CSRF         | SameSite cookies plus origin check and CSRF token for applicable mutations                           |
+| CORS         | Exact origin allowlist; no wildcard with credentials                                                 |
+| Injection    | Parameterized ORM/database queries; no shell interpolation                                           |
+| SSRF         | No arbitrary user URL fetch; allowlisted feed adapters and private-network protection                |
+| Rate limits  | Ticket verify, login, OTP, AI prompts, incident creation, uploads, notifcations                      |
+| Headers      | HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy                                    |
+| Errors       | No stack traces or internal IDs exposed in production responses                                      |
+| Dependencies | Automated audit, lockfle, no abandoned packages, remove unused packages                              |
+| Secrets      | Environment/secret manager, never NEXT_PUBLIC for sensitive values, scanning in CI                   |
 
-- 
+### **6. File and media upload security**
 
-- Require reason and confirmation for gate state changes, mass notifications, and incident overrides. 
+- Allow only required MIME types and verify magic bytes; extensions are insufficient.
 
-### **5. Web and API security controls** 
+- Set strict size, count, and image-dimension limits.
 
-|**Control**|**Implementation expectation**|
-|---|---|
-|Validation|Zod schemas, length/range limits, enum allowlists, reject unknown felds where appropriate|
-|XSS|React escaping, no unsafe HTML, sanitize approved rich content, never render untrusted SVG|
-|CSP|Restrictive default-src, script nonces/hashes as needed, connect-src allowlist, frame-ancestors none|
-|CSRF|SameSite cookies plus origin check and CSRF token for applicable mutations|
-|CORS|Exact origin allowlist; no wildcard with credentials|
-|Injection|Parameterized ORM/database queries; no shell interpolation|
-|SSRF|No arbitrary user URL fetch; allowlisted feed adapters and private-network protection|
-|Rate limits|Ticket verify, login, OTP, AI prompts, incident creation, uploads, notifcations|
-|Headers|HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy|
-|Errors|No stack traces or internal IDs exposed in production responses|
-|Dependencies|Automated audit, lockfle, no abandoned packages, remove unused packages|
-|Secrets|Environment/secret manager, never NEXT_PUBLIC for sensitive values, scanning in CI|
+- Reject or safely rasterize SVG and other active formats.
 
+- Strip metadata from images before long-term storage.
 
+- Use randomly generated object keys and private storage.
 
-### **6. File and media upload security** 
+- Scan files before they become accessible to staff.
 
-- Allow only required MIME types and verify magic bytes; extensions are insufficient. 
+- Serve downloads with safe Content-Type and Content-Disposition.
 
-- Set strict size, count, and image-dimension limits. 
+- Delete temporary ticket images promptly and document retention.
 
-- Reject or safely rasterize SVG and other active formats. 
+### **7. Privacy and data minimization**
 
-- Strip metadata from images before long-term storage. 
+- Do not use facial recognition or identify individuals from crowd imagery.
 
-- Use randomly generated object keys and private storage. 
+- Use aggregated anonymous counts for crowd intelligence.
 
-- Scan files before they become accessible to staff. 
+- Store only ticket fields needed to personalize the route and verify access.
 
-- Serve downloads with safe Content-Type and Content-Disposition. 
+- Make accessibility preferences optional, purpose-limited, and removable.
 
-- Delete temporary ticket images promptly and document retention. 
+- Do not expose precise volunteer locations to fans; show assistance availability or assigned helper only.
 
-### **7. Privacy and data minimization** 
+- Avoid sending personal or sensitive fields to the language model.
 
-- Do not use facial recognition or identify individuals from crowd imagery. 
+- Define retention for sessions, uploads, incidents, audits, and analytics.
 
-- Use aggregated anonymous counts for crowd intelligence. 
+- Provide a demo privacy notice that explains what data is used and why.
 
-- Store only ticket fields needed to personalize the route and verify access. 
+### **8. Accessibility target**
 
-- Make accessibility preferences optional, purpose-limited, and removable. 
+##### **Target standard**
 
-- Do not expose precise volunteer locations to fans; show assistance availability or assigned helper only. 
+Meet WCAG 2.2 Level AA for all critical user flows. Automated testing is necessary but not sufficient; include manual keyboard, screen-reader, zoom, contrast, and reduced-motion checks.
 
-- Avoid sending personal or sensitive fields to the language model. 
+Implementation-ready specification | Claude input pack Page 3
 
-- Define retention for sessions, uploads, incidents, audits, and analytics. 
+**FANAXO AI / BUILD SPEC 07**
 
-- Provide a demo privacy notice that explains what data is used and why. 
+### **9. Accessibility implementation requirements**
 
-### **8. Accessibility target** 
+| **Area**      | **Required behavior**                                                                                          |
+| ------------- | -------------------------------------------------------------------------------------------------------------- |
+| Semantics     | Landmarks, headings in order, native controls, labels, feld instructions, table headers                        |
+| Keyboard      | All actions reachable, logical focus order, visible focus, no traps except managed modal focus                 |
+| Screen reader | Meaningful names, status announcements, map alternatives, live region restraint                                |
+| Color         | AA contrast; status also shown with text/icon/pattern                                                          |
+| Motion        | Honor reduced motion, pause animation, no essential information only in motion                                 |
+| Touch         | Large controls and spacing suitable for fan/volunteer mobile use                                               |
+| Forms         | Programmatic errors, summary and inline messages, preserved input, clear required felds                        |
+| Maps          | Search/list alternative for facilities, route steps in text, keyboard-selectable markers                       |
+| Charts        | Data table or textual summary and non-color series distinctions                                                |
+| Language      | Page lang and direction, locale-aware date/time/number, fexible layouts for long text                          |
+| Zoom          | Usable at 200 percent zoom and responsive refow without two-dimensional scrolling except maps/tables           |
+| Cognitive     | Plain language, consistent navigation, confrmation for high-impact actions, no time pressure without extension |
 
-##### **Target standard** 
+### **10. Accessibility-specific product features**
 
-Meet WCAG 2.2 Level AA for all critical user flows. Automated testing is necessary but not sufficient; include manual keyboard, screen-reader, zoom, contrast, and reduced-motion checks. 
+- Step-free and wheelchair-accessible route constraints.
 
-Implementation-ready specification  |  Claude input pack Page 3 
+- Lift and ramp status with alternatives.
 
-**FANAXO AI  /  BUILD SPEC 07** 
+- Voice guidance and text equivalent.
 
-### **9. Accessibility implementation requirements** 
+- Low-vision high-contrast mode without losing brand meaning.
 
-|**Area**|**Required behavior**|
-|---|---|
-|Semantics|Landmarks, headings in order, native controls, labels, feld instructions, table headers|
-|Keyboard|All actions reachable, logical focus order, visible focus, no traps except managed modal focus|
-|Screen reader|Meaningful names, status announcements, map alternatives, live region restraint|
-|Color|AA contrast; status also shown with text/icon/pattern|
-|Motion|Honor reduced motion, pause animation, no essential information only in motion|
-|Touch|Large controls and spacing suitable for fan/volunteer mobile use|
-|Forms|Programmatic errors, summary and inline messages, preserved input, clear required felds|
-|Maps|Search/list alternative for facilities, route steps in text, keyboard-selectable markers|
-|Charts|Data table or textual summary and non-color series distinctions|
-|Language|Page lang and direction, locale-aware date/time/number, fexible layouts for long text|
-|Zoom|Usable at 200 percent zoom and responsive refow without two-dimensional scrolling except maps/tables|
-|Cognitive|Plain language, consistent navigation, confrmation for high-impact actions, no time pressure without extension|
+- Hearing assistance and text translation for announcements.
 
+- Quiet-zone and low-sensory route preference.
 
+- Volunteer assistance request with clear acknowledgement.
 
-### **10. Accessibility-specific product features** 
+- Accessible transport and drop-off information.
 
-- Step-free and wheelchair-accessible route constraints. 
+### **11. Security and accessibility testing gates**
 
-- Lift and ramp status with alternatives. 
+| **Gate**            | **Tool or method**                      | **Pass condition**                                 |
+| ------------------- | --------------------------------------- | -------------------------------------------------- |
+| SAST                | Maintained code scanner                 | No high or critical fndings                        |
+| Dependency audit    | Package manager audit and update review | No known high or critical production vulnerability |
+| Secret scan         | Gitleaks or equivalent                  | No secrets in repository/history submitted         |
+| DAST smoke          | OWASP ZAP baseline or equivalent        | No high-risk issue; fndings reviewed               |
+| Authorization tests | Integration and E2E negative cases      | All unauthorized access denied                     |
+| axe automated       | Component and E2E scans                 | Zero critical/serious violations in core routes    |
+| Keyboard manual     | Complete each core fow without mouse    | No unreachable control or focus trap               |
+| Screen reader smoke | NVDA/VoiceOver or equivalent            | Critical content and status understandable         |
+| Contrast            | Token and page checks                   | Text and controls meet target ratios               |
+| Reduced motion      | OS preference and app toggle            | No essential loss or unsafe animation              |
 
-- Voice guidance and text equivalent. 
+Implementation-ready specification | Claude input pack Page 4
 
-- Low-vision high-contrast mode without losing brand meaning. 
+**FANAXO AI / BUILD SPEC 07**
 
-- Hearing assistance and text translation for announcements. 
+### **12. Incident response and secure failure**
 
-- Quiet-zone and low-sensory route preference. 
+- Add a security contact and runbook for suspected credential, data, or operational abuse.
 
-- Volunteer assistance request with clear acknowledgement. 
+- Support rapid session invalidation and demo credential rotation.
 
-- Accessible transport and drop-off information. 
+- Use circuit breakers to disable risky integration while preserving static safe guidance.
 
-### **11. Security and accessibility testing gates** 
+- Show a clear stale/offline state instead of silently presenting old data as live.
 
-|**Gate**|**Tool or method**|**Pass condition**|
-|---|---|---|
-|SAST|Maintained code scanner|No high or critical fndings|
-|Dependency audit|Package manager audit and update review|No known high or critical production vulnerability|
-|Secret scan|Gitleaks or equivalent|No secrets in repository/history submitted|
-|DAST smoke|OWASP ZAP baseline or equivalent|No high-risk issue; fndings reviewed|
-|Authorization tests|Integration and E2E negative cases|All unauthorized access denied|
-|axe automated|Component and E2E scans|Zero critical/serious violations in core routes|
-|Keyboard manual|Complete each core fow without mouse|No unreachable control or focus trap|
-|Screen reader smoke|NVDA/VoiceOver or equivalent|Critical content and status understandable|
-|Contrast|Token and page checks|Text and controls meet target ratios|
-|Reduced motion|OS preference and app toggle|No essential loss or unsafe animation|
+- Preserve immutable audit evidence for privileged actions.
 
+- Do not expose technical security details to ordinary users during an incident.
 
+### **13. Release checklist**
 
-Implementation-ready specification  |  Claude input pack Page 4 
+- [ ] Threat model reviewed against final architecture.
 
-**FANAXO AI  /  BUILD SPEC 07** 
+- [ ] No secret in source, client bundle, screenshots, logs, or sample environment file.
 
-### **12. Incident response and secure failure** 
+- [ ] Server-side authorization tests cover every protected route and mutation.
 
-- Add a security contact and runbook for suspected credential, data, or operational abuse. 
+- [ ] CSP and security headers verified in deployed environment.
 
-- Support rapid session invalidation and demo credential rotation. 
+- [ ] Upload route rejects active and oversized content.
 
-- Use circuit breakers to disable risky integration while preserving static safe guidance. 
+- [ ] AI tools cannot bypass permission or approval policy.
 
-- Show a clear stale/offline state instead of silently presenting old data as live. 
+- [ ] Privacy notice and retention assumptions are documented.
 
-- Preserve immutable audit evidence for privileged actions. 
+- [ ] Core flows pass keyboard and screen-reader checks.
 
-- Do not expose technical security details to ordinary users during an incident. 
+- [ ] Core pages pass automated accessibility scans.
 
-### **13. Release checklist** 
+- [ ] Logo and media are original or properly licensed.
 
-- [ ] Threat model reviewed against final architecture. 
+##### **CLAUDE EXECUTION RULE**
 
-- [ ] No secret in source, client bundle, screenshots, logs, or sample environment file. 
+Treat every MUST statement as an acceptance criterion. Do not replace functional workflows with static mockups. Do not claim completion until the relevant tests, security checks, accessibility checks, linting, type-checking, and production build all pass.
 
-- [ ] Server-side authorization tests cover every protected route and mutation. 
+### **Security Submission Gate**
 
-- [ ] CSP and security headers verified in deployed environment. 
+- Run dependency vulnerability scanning, static application security testing, secret scanning, and license checks in CI.
 
-- [ ] Upload route rejects active and oversized content. 
+- Threat-model ticket replay, privilege escalation, cross-venue access, malicious uploads, prompt injection, WebSocket spoofing, denial of service, and sensitive log leakage.
 
-- [ ] AI tools cannot bypass permission or approval policy. 
+- Use deny-by-default authorization policies and test every privileged command with wrong role, wrong venue, wrong resource, expired session, and tampered payload cases.
 
-- [ ] Privacy notice and retention assumptions are documented. 
+- Apply CSP with nonces or hashes, secure headers, origin checks, CSRF defenses for cookie-authenticated mutations, and strict upload MIME/signature/size validation.
 
-- [ ] Core flows pass keyboard and screen-reader checks. 
+- Redact ticket tokens, session identifiers, personal data, prompts containing sensitive content, and internal stack traces from logs.
 
-- [ ] Core pages pass automated accessibility scans. 
+- Keep a security exception register. No unresolved critical or high issue is acceptable for submission.
 
-- [ ] Logo and media are original or properly licensed. 
-
-##### **CLAUDE EXECUTION RULE** 
-
-Treat every MUST statement as an acceptance criterion. Do not replace functional workflows with static mockups. Do not claim completion until the relevant tests, security checks, accessibility checks, linting, type-checking, and production build all pass. 
-
-### **Security Submission Gate** 
-
-- Run dependency vulnerability scanning, static application security testing, secret scanning, and license checks in CI. 
-
-- Threat-model ticket replay, privilege escalation, cross-venue access, malicious uploads, prompt injection, WebSocket spoofing, denial of service, and sensitive log leakage. 
-
-- Use deny-by-default authorization policies and test every privileged command with wrong role, wrong venue, wrong resource, expired session, and tampered payload cases. 
-
-- Apply CSP with nonces or hashes, secure headers, origin checks, CSRF defenses for cookie-authenticated mutations, and strict upload MIME/signature/size validation. 
-
-- Redact ticket tokens, session identifiers, personal data, prompts containing sensitive content, and internal stack traces from logs. 
-
-- Keep a security exception register. No unresolved critical or high issue is acceptable for submission. 
-
-Implementation-ready specification  |  Claude input pack Page 5 
-
+Implementation-ready specification | Claude input pack Page 5

@@ -1,5 +1,5 @@
 {
-  "name": "@fanaxo/contracts",
+  "name": "@fanaxo/domain",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,10 +9,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./*": {
-      "types": "./dist/*.d.ts",
-      "import": "./dist/*.js"
     }
   },
   "scripts": {
@@ -25,7 +21,7 @@
     "clean": "rimraf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
-    "zod": "^3.24.0"
+    "@fanaxo/contracts": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

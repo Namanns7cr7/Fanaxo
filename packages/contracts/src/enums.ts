@@ -120,8 +120,7 @@ export const RecommendationStatus = {
   CLOSED: 'closed',
 } as const;
 
-export type RecommendationStatus =
-  (typeof RecommendationStatus)[keyof typeof RecommendationStatus];
+export type RecommendationStatus = (typeof RecommendationStatus)[keyof typeof RecommendationStatus];
 
 /** Task priority levels */
 export const TaskPriority = {

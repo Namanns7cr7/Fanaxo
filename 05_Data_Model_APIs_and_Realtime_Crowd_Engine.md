@@ -1,283 +1,276 @@
-**FANAXO AI  /  BUILD SPEC 05** 
+**FANAXO AI / BUILD SPEC 05**
 
-# **05** 
+# **05**
 
-## **Data Model, APIs and Realtime Crowd Engine** 
+## **Data Model, APIs and Realtime Crowd Engine**
 
-**Defines persistent entities, typed contracts, event propagation, routing, simulation, and seeded demo data.** 
+**Defines persistent entities, typed contracts, event propagation, routing, simulation, and seeded demo data.**
 
-### **Evaluation Priority Order** 
+### **Evaluation Priority Order**
 
-**QUALITY TARGET: Build for the maximum possible evaluation score. No document can guarantee a numerical score, but the implementation must provide objective evidence for every criterion and must not be submitted while any highor medium-impact release gate is failing.** 
+**QUALITY TARGET: Build for the maximum possible evaluation score. No document can guarantee a numerical score, but the implementation must provide objective evidence for every criterion and must not be submitted while any highor medium-impact release gate is failing.**
 
-|**Impact**|**Criterion**|**Non-negotiable evidence**|
-|---|---|---|
-|**HIGH**|**Code Quality**|Clean, readable, modular, SOLID, strictly<br>typed, documented, and easyto extend.|
-|**HIGH**|**Problem Statement Alignment**|Directly solves live stadium needs for fans,<br>volunteers, operators, organizers, and<br>venue staf.|
-|**MEDIUM**|**Security**|Least privilege, server-side authorization,<br>validation, safe sessions, secure AI tools,<br>and auditability.|
-|**MEDIUM**|**Eficiency**|Fast loading, bounded memory/CPU use,<br>optimized realtime updates, and browser-<br>safe simulation.|
-|**LOW**|**Testing and Maintainability**|Automated validation of critical paths,<br>deterministic demos, and maintainable<br>contracts.|
-|**LOW**|**Accessibility**|WCAG 2.2 AA, keyboard and screen-reader<br>support, reduced motion, and inclusive<br>routing.|
+| **Impact** | **Criterion**                   | **Non-negotiable evidence**                                                                                     |
+| ---------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **HIGH**   | **Code Quality**                | Clean, readable, modular, SOLID, strictly<br>typed, documented, and easyto extend.                              |
+| **HIGH**   | **Problem Statement Alignment** | Directly solves live stadium needs for fans,<br>volunteers, operators, organizers, and<br>venue staf.           |
+| **MEDIUM** | **Security**                    | Least privilege, server-side authorization,<br>validation, safe sessions, secure AI tools,<br>and auditability. |
+| **MEDIUM** | **Eficiency**                   | Fast loading, bounded memory/CPU use,<br>optimized realtime updates, and browser-<br>safe simulation.           |
+| **LOW**    | **Testing and Maintainability** | Automated validation of critical paths,<br>deterministic demos, and maintainable<br>contracts.                  |
+| **LOW**    | **Accessibility**               | WCAG 2.2 AA, keyboard and screen-reader<br>support, reduced motion, and inclusive<br>routing.                   |
 
+#### **Submission release gates**
 
+- Code Quality gate: strict TypeScript passes with zero errors; no any, @ts-ignore, circular dependencies, god components, duplicated business rules, or unexplained console warnings.
 
-#### **Submission release gates** 
+- Alignment gate: the connected Gate C workflow works end-to-end and visibly benefits all three portals through shared state, not independent mock animations.
 
-- Code Quality gate: strict TypeScript passes with zero errors; no any, @ts-ignore, circular dependencies, god components, duplicated business rules, or unexplained console warnings. 
+- Security gate: authorization is enforced on the server for every privileged operation; secrets are absent from client bundles and repository history; high-severity findings are zero.
 
-- Alignment gate: the connected Gate C workflow works end-to-end and visibly benefits all three portals through shared state, not independent mock animations. 
+- Efficiency gate: production build meets defined web performance and simulation budgets; no full React render per simulation frame; listeners, timers, and workers are cleaned up.
 
-- Security gate: authorization is enforced on the server for every privileged operation; secrets are absent from client bundles and repository history; high-severity findings are zero. 
+- Testing gate: critical domain, API, authorization, and connected E2E scenarios pass deterministically in CI.
 
-- Efficiency gate: production build meets defined web performance and simulation budgets; no full React render per simulation frame; listeners, timers, and workers are cleaned up. 
+- Accessibility gate: automated axe checks pass for critical screens and manual keyboard, focus, announcement, contrast, and reduced-motion checks are completed.
 
-- Testing gate: critical domain, API, authorization, and connected E2E scenarios pass deterministically in CI. 
+**Product**
 
-- Accessibility gate: automated axe checks pass for critical screens and manual keyboard, focus, announcement, contrast, and reduced-motion checks are completed. 
+Fanaxo AI - GenAI stadium operations and matchday experience platform
 
-**Product** 
+**Primary quality gates**
 
-Fanaxo AI - GenAI stadium operations and matchday experience platform 
+Code Quality | Security | Efficiency | Testing | Accessibility |
 
-**Primary quality gates** 
+Implementation-ready specification | Claude input pack Page 1
 
-Code Quality | Security | Efficiency | Testing | Accessibility | 
+**FANAXO AI / BUILD SPEC 05**
 
-Implementation-ready specification  |  Claude input pack Page 1 
+Problem Statement Alignment
 
-**FANAXO AI  /  BUILD SPEC 05** 
+### **1. Data principles**
 
-Problem Statement Alignment 
+- Collect and store only data required for the product workflow.
 
-### **1. Data principles** 
+- Use stable IDs, foreign keys, timestamps, status enums, and optimistic version fields.
 
-- Collect and store only data required for the product workflow. 
+- Keep personal fan data separate from operational telemetry.
 
-- Use stable IDs, foreign keys, timestamps, status enums, and optimistic version fields. 
+- Represent live values as time-stamped snapshots, not mutable unexplained numbers.
 
-- Keep personal fan data separate from operational telemetry. 
+- Use transactions for state changes that publish events or create audit records.
 
-- Represent live values as time-stamped snapshots, not mutable unexplained numbers. 
+- All API and event payloads use shared Zod schemas and inferred TypeScript types.
 
-- Use transactions for state changes that publish events or create audit records. 
+### **2. Core entities**
 
-- All API and event payloads use shared Zod schemas and inferred TypeScript types. 
+| **Entity**       | **Key felds**                                                                  | **Notes**                                                                            |
+| ---------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| User             | id, role, displayName, locale, status                                          | No password storage in application code; use auth<br>provider or secure hash service |
+| Venue            | id, name, timezone, status                                                     | Root scope for operational data                                                      |
+| Zone             | id, venueId, name, type, capacity, geometryRef                                 | Gate, concourse, section, facility, transport                                        |
+| Match            | id, venueId, homeLabel, awayLabel, startsAt, status                            | Use demo country labels without protected crests                                     |
+| Ticket           | id, matchId, gateId, section, row, seat, tokenHash, status                     | Store hash, not raw ticket token                                                     |
+| FanSession       | id, ticketId optional, locale, accessibilityProfle, expiresAt                  | Short lived and minimal                                                              |
+| VolunteerProfle  | userId, venueId, roleType, zoneId, shiftStart, shiftEnd                        | Least-privilege scope                                                                |
+| GateState        | gateId, status, queueMinutes, throughput, version, updatedAt                   | Current materialized state plus history                                              |
+| CrowdSnapshot    | venueId, zoneId, capturedAt, count, density, fowRate, confdence                | Aggregated anonymous telemetry                                                       |
+| Route            | id, fromNode, toNode, accessibilityFlags, baseCost, status                     | Graph edges or route records                                                         |
+| Incident         | id, venueId, zoneId, category, severity, status, reporter, summary,<br>version | Lifecycle controlled by state machine                                                |
+| Task             | id, incidentId optional, assigneeId, priority, status, dueAt,<br>instructions  | Volunteer work item                                                                  |
+| AIRecommendation | id, contextType, contextId, proposal, confdence, sources, status               | Requires approval for operational action                                             |
+| Notifcation      | id, audience, locale, channel, message, status                                 | Targeted and auditable                                                               |
+| AuditEvent       | id, actor, action, resource, beforeHash, afterHash, reason,<br>correlationId   | Append-only application record                                                       |
 
-### **2. Core entities** 
+### **3. Suggested relational constraints and indexes**
 
-|**Entity**|**Key felds**|**Notes**|
-|---|---|---|
-|User|id, role, displayName, locale, status|No password storage in application code; use auth<br>provider or secure hash service|
-|Venue|id, name, timezone, status|Root scope for operational data|
-|Zone|id, venueId, name, type, capacity, geometryRef|Gate, concourse, section, facility, transport|
-|Match|id, venueId, homeLabel, awayLabel, startsAt, status|Use demo country labels without protected crests|
-|Ticket|id, matchId, gateId, section, row, seat, tokenHash, status|Store hash, not raw ticket token|
-|FanSession|id, ticketId optional, locale, accessibilityProfle, expiresAt|Short lived and minimal|
-|VolunteerProfle|userId, venueId, roleType, zoneId, shiftStart, shiftEnd|Least-privilege scope|
-|GateState|gateId, status, queueMinutes, throughput, version, updatedAt|Current materialized state plus history|
-|CrowdSnapshot|venueId, zoneId, capturedAt, count, density, fowRate, confdence|Aggregated anonymous telemetry|
-|Route|id, fromNode, toNode, accessibilityFlags, baseCost, status|Graph edges or route records|
-|Incident|id, venueId, zoneId, category, severity, status, reporter, summary,<br>version|Lifecycle controlled by state machine|
-|Task|id, incidentId optional, assigneeId, priority, status, dueAt,<br>instructions|Volunteer work item|
-|AIRecommendation|id, contextType, contextId, proposal, confdence, sources, status|Requires approval for operational action|
-|Notifcation|id, audience, locale, channel, message, status|Targeted and auditable|
-|AuditEvent|id, actor, action, resource, beforeHash, afterHash, reason,<br>correlationId|Append-only application record|
+- Unique ticket token hash and match-seat combination for demo data.
 
+- Index CrowdSnapshot on venueId, zoneId, capturedAt descending.
 
+- Index Incident on venueId, status, severity, createdAt descending.
 
-### **3. Suggested relational constraints and indexes** 
+- Index Task on assigneeId, status, priority, createdAt descending.
 
-- Unique ticket token hash and match-seat combination for demo data. 
+- Index AuditEvent on venueId, correlationId, createdAt descending.
 
-- Index CrowdSnapshot on venueId, zoneId, capturedAt descending. 
+- Use check constraints for normalized density and confidence ranges.
 
-- Index Incident on venueId, status, severity, createdAt descending. 
+- Use foreign-key restrictions or soft-delete policy for referenced operational records.
 
-- Index Task on assigneeId, status, priority, createdAt descending. 
+- Use version integer for optimistic concurrency on Incident, Task, GateState, and AIRecommendation.
 
-- Index AuditEvent on venueId, correlationId, createdAt descending. 
+Implementation-ready specification | Claude input pack Page 2
 
-- Use check constraints for normalized density and confidence ranges. 
+**FANAXO AI / BUILD SPEC 05**
 
-- Use foreign-key restrictions or soft-delete policy for referenced operational records. 
+### **4. API design**
 
-- Use version integer for optimistic concurrency on Incident, Task, GateState, and AIRecommendation. 
+| **Method and route**                            | **Purpose**                                                       | **Authorization**                                  |
+| ----------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------- |
+| POST /api/fan/tickets/verify                    | Verify demo ticket and create fan session                         | Public with rate limit and anti-replay<br>controls |
+| GET /api/fan/context                            | Return safe match, destination, preferences, and current<br>route | Fan session                                        |
+| PUT /api/fan/preferences                        | Update locale and accessibility preferences                       | Own fan session                                    |
+| POST /api/fan/assistance                        | Create fan assistance request                                     | Fan session                                        |
+| GET /api/volunteer/dashboard                    | Tasks, alerts, zone, and shift data                               | Volunteer within venue scope                       |
+| POST /api/incidents                             | Create validated incident                                         | Fan limited, volunteer, or operator                |
+| PATCH /api/tasks/:id                            | Accept, progress, resolve, or escalate task                       | Assigned volunteer or operator                     |
+| GET /api/operator/snapshot                      | Operational dashboard snapshot                                    | Operator venue scope                               |
+| POST /api/operator/recommendations/:id/decision | Approve, modify, or reject AI plan                                | Authorized operator with reason                    |
+| PATCH /api/gates/:id/state                      | Restrict, close, or reopen gate                                   | Authorized operator with<br>confrmation            |
+| POST /api/notifcations                          | Create localized target alert                                     | Authorized operator                                |
+| GET /api/reports/match-day                      | Return metrics and summary                                        | Authorized operator                                |
+| GET /api/audit                                  | Query scoped audit events                                         | Authorized operator or own-activity<br>scope       |
 
-Implementation-ready specification  |  Claude input pack Page 2 
+### **5. Contract example**
 
-**FANAXO AI  /  BUILD SPEC 05** 
+const IncidentCreateSchema = z.object({ venueId: z.string().uuid(), zoneId: z.string().uuid(), category: z.enum([ "crowd_congestion", "medical", "lost_child", "security", "accessibility", "facility", "transport", "lost_item" ]), description: z.string().trim().min(10).max(1000), severityHint: z.enum(["low", "medium", "high", "critical"]).optional(), clientRequestId: z.string().uuid(), attachmentIds: z.array(z.string().uuid()).max(3).default([]) });
 
-### **4. API design** 
+// Server derives reporter, venue permission, trusted timestamp, // final severity, status, version, and audit metadata.
 
-|**Method and route**|**Purpose**|**Authorization**|
-|---|---|---|
-|POST /api/fan/tickets/verify|Verify demo ticket and create fan session|Public with rate limit and anti-replay<br>controls|
-|GET /api/fan/context|Return safe match, destination, preferences, and current<br>route|Fan session|
-|PUT /api/fan/preferences|Update locale and accessibility preferences|Own fan session|
-|POST /api/fan/assistance|Create fan assistance request|Fan session|
-|GET /api/volunteer/dashboard|Tasks, alerts, zone, and shift data|Volunteer within venue scope|
-|POST /api/incidents|Create validated incident|Fan limited, volunteer, or operator|
-|PATCH /api/tasks/:id|Accept, progress, resolve, or escalate task|Assigned volunteer or operator|
-|GET /api/operator/snapshot|Operational dashboard snapshot|Operator venue scope|
-|POST /api/operator/recommendations/:id/decision|Approve, modify, or reject AI plan|Authorized operator with reason|
-|PATCH /api/gates/:id/state|Restrict, close, or reopen gate|Authorized operator with<br>confrmation|
-|POST /api/notifcations|Create localized target alert|Authorized operator|
-|GET /api/reports/match-day|Return metrics and summary|Authorized operator|
-|GET /api/audit|Query scoped audit events|Authorized operator or own-activity<br>scope|
+Implementation-ready specification | Claude input pack Page 3
 
+**FANAXO AI / BUILD SPEC 05**
 
+### **6. Realtime event envelope**
 
-### **5. Contract example** 
+type RealtimeEvent<T> = { eventId: string; eventType: EventType; schemaVersion: 1; venueId: string; aggregateId: string; aggregateVersion: number; occurredAt: string; correlationId: string; payload: T; };
 
-const IncidentCreateSchema = z.object({ venueId: z.string().uuid(), zoneId: z.string().uuid(), category: z.enum([ "crowd_congestion", "medical", "lost_child", "security", "accessibility", "facility", "transport", "lost_item" ]), description: z.string().trim().min(10).max(1000), severityHint: z.enum(["low", "medium", "high", "critical"]).optional(), clientRequestId: z.string().uuid(), attachmentIds: z.array(z.string().uuid()).max(3).default([]) }); 
+#### **6.1 Required event types**
 
-// Server derives reporter, venue permission, trusted timestamp, // final severity, status, version, and audit metadata. 
+- crowd.snapshot.updated
 
-Implementation-ready specification  |  Claude input pack Page 3 
+- crowd.forecast.updated
 
-**FANAXO AI  /  BUILD SPEC 05** 
+- gate.state.changed
 
-### **6. Realtime event envelope** 
+- incident.created
 
-type RealtimeEvent<T> = { eventId: string; eventType: EventType; schemaVersion: 1; venueId: string; aggregateId: string; aggregateVersion: number; occurredAt: string; correlationId: string; payload: T; }; 
+- incident.status.changed
 
-#### **6.1 Required event types** 
+- task.assigned
 
-- crowd.snapshot.updated 
+- task.status.changed
 
-- crowd.forecast.updated 
+- recommendation.created
 
-- gate.state.changed 
+- recommendation.decision.recorded
 
-- incident.created 
+- fan.route.updated
 
-- incident.status.changed 
+- notification.published
 
-- task.assigned 
+- feed.status.changed
 
-- task.status.changed 
+### **7. Route graph and accessibility model**
 
-- recommendation.created 
+- Represent venue navigation as nodes and directed edges.
 
-- recommendation.decision.recorded 
+- Node types: entrance, gate, corridor junction, section, lift, ramp, stairs, restroom, food, medical, exit, transit.
 
-- fan.route.updated 
+- Edge fields: distance, expected time, capacity, live density, status, slope, stairs, lift dependency, indoor/outdoor, sensory intensity.
 
-- notification.published 
+- Route cost combines distance, queue, density, closure, accessibility constraints, and user preference.
 
-- feed.status.changed 
+- Hard accessibility constraints exclude invalid edges; soft preferences change cost.
 
-### **7. Route graph and accessibility model** 
+- Never generate a route solely from the language model. The model may explain a path calculated by the trusted graph service.
 
-- Represent venue navigation as nodes and directed edges. 
+edgeCost = baseTravelTime
 
-- Node types: entrance, gate, corridor junction, section, lift, ramp, stairs, restroom, food, medical, exit, transit. 
+- - congestionPenalty(density, capacity)
 
-- Edge fields: distance, expected time, capacity, live density, status, slope, stairs, lift dependency, indoor/outdoor, sensory intensity. 
+* queuePenalty(queueMinutes)
 
-- Route cost combines distance, queue, density, closure, accessibility constraints, and user preference. 
+- - preferencePenalty(userPreferences)
 
-- Hard accessibility constraints exclude invalid edges; soft preferences change cost. 
+- - operationalPenalty(edgeStatus)
 
-- Never generate a route solely from the language model. The model may explain a path calculated by the trusted graph service. 
+Closed or inaccessible edge -> Infinity
 
-edgeCost = baseTravelTime 
+### **8. Crowd simulation engine**
 
-- + congestionPenalty(density, capacity) 
+#### **8.1 Minimal agent model**
 
-+ queuePenalty(queueMinutes) 
+- Each agent has current node/position, destination, speed, route, role tag, and accessibility flag.
 
-- + preferencePenalty(userPreferences) 
+- Use graph-based pathfinding for destinations and lightweight local separation for visual agents.
 
-- + operationalPenalty(edgeStatus) 
+- Recalculate only agents affected by a changed edge or destination.
 
-Closed or inaccessible edge -> Infinity 
+- Aggregate agents into zone counts and flow rates for dashboards.
 
-### **8. Crowd simulation engine** 
+- Run computation in a Web Worker; render using Canvas or instanced WebGL.
 
-#### **8.1 Minimal agent model** 
+Implementation-ready specification | Claude input pack Page 4
 
-- Each agent has current node/position, destination, speed, route, role tag, and accessibility flag. 
+**FANAXO AI / BUILD SPEC 05**
 
-- Use graph-based pathfinding for destinations and lightweight local separation for visual agents. 
+- Use deterministic seeded random numbers so tests and demonstrations are repeatable.
 
-- Recalculate only agents affected by a changed edge or destination. 
+#### **8.2 Forecast model for demo**
 
-- Aggregate agents into zone counts and flow rates for dashboards. 
+- Use recent density, arrival rate, departure rate, gate throughput, and scheduled phase as features.
 
-- Run computation in a Web Worker; render using Canvas or instanced WebGL. 
+- Implement a transparent heuristic or small time-series model for the hackathon; do not imply production safety certification.
 
-Implementation-ready specification  |  Claude input pack Page 4 
+- Return forecast value, horizon, confidence, contributing signals, and model version.
 
-**FANAXO AI  /  BUILD SPEC 05** 
+- Thresholds are venue configuration, not hard-coded throughout the UI.
 
-- Use deterministic seeded random numbers so tests and demonstrations are repeatable. 
+### **9. Ticket and QR safety**
 
-#### **8.2 Forecast model for demo** 
+- Demo QR contains a random opaque ticket token, not personal details.
 
-- Use recent density, arrival rate, departure rate, gate throughput, and scheduled phase as features. 
+- Server stores only a one-way hash of the token.
 
-- Implement a transparent heuristic or small time-series model for the hackathon; do not imply production safety certification. 
+- Verification endpoint is rate limited and returns generic errors where necessary to prevent enumeration.
 
-- Return forecast value, horizon, confidence, contributing signals, and model version. 
+- Fan session is short lived, secure, HttpOnly, SameSite, and scoped to the selected match.
 
-- Thresholds are venue configuration, not hard-coded throughout the UI. 
+- Uploaded ticket images are size/type validated, scanned, processed in isolation, and deleted according to policy.
 
-### **9. Ticket and QR safety** 
+- Never execute or render untrusted SVG, HTML, JavaScript, or QR payload as markup.
 
-- Demo QR contains a random opaque ticket token, not personal details. 
+### **10. Seeded demo dataset**
 
-- Server stores only a one-way hash of the token. 
+- One fictional venue with 4 gates, 8 concourse zones, 12 seating sections, 3 accessible lifts, 2 ramps, facilities, and 2 transit exits.
 
-- Verification endpoint is rate limited and returns generic errors where necessary to prevent enumeration. 
+- One fictional match using country labels or fictional team names without protected crests.
 
-- Fan session is short lived, secure, HttpOnly, SameSite, and scoped to the selected match. 
+- One demo fan ticket assigned to Gate C and Section 214.
 
-- Uploaded ticket images are size/type validated, scanned, processed in isolation, and deleted according to policy. 
+- Eight volunteers across fan support, crowd management, accessibility, transport, and medical liaison roles.
 
-- Never execute or render untrusted SVG, HTML, JavaScript, or QR payload as markup. 
+- Initial Gate C density trend that can be accelerated by a simulation control.
 
-### **10. Seeded demo dataset** 
+- One optional facility incident and one accessibility request for additional demo paths.
 
-- One fictional venue with 4 gates, 8 concourse zones, 12 seating sections, 3 accessible lifts, 2 ramps, facilities, and 2 transit exits. 
+- Deterministic identifiers and timestamps relative to a configurable demo clock.
 
-- One fictional match using country labels or fictional team names without protected crests. 
+### **11. Data and API acceptance tests**
 
-- One demo fan ticket assigned to Gate C and Section 214. 
+- [ ] Invalid input is rejected before domain processing.
 
-- Eight volunteers across fan support, crowd management, accessibility, transport, and medical liaison roles. 
+- [ ] Authorization cannot be bypassed by changing IDs in requests.
 
-- Initial Gate C density trend that can be accelerated by a simulation control. 
+- [ ] Duplicate clientRequestId does not create duplicate incident.
 
-- One optional facility incident and one accessibility request for additional demo paths. 
+- [ ] Concurrent task updates produce a conflict instead of silent overwrite.
 
-- Deterministic identifiers and timestamps relative to a configurable demo clock. 
+- [ ] Out-of-order realtime events do not roll state backward.
 
-### **11. Data and API acceptance tests** 
+- [ ] Gate closure invalidates affected routes and creates versioned updates.
 
-- [ ] Invalid input is rejected before domain processing. 
+- [ ] Accessibility constraints never return stairs-only route for step-free requirement.
 
-- [ ] Authorization cannot be bypassed by changing IDs in requests. 
+- [ ] Raw QR token, OTP, and secrets never appear in logs or API responses.
 
-- [ ] Duplicate clientRequestId does not create duplicate incident. 
+- [ ] Queries use indexes and bounded pagination.
 
-- [ ] Concurrent task updates produce a conflict instead of silent overwrite. 
+- [ ] Demo seed can be reset to a known state through a protected development command.
 
-- [ ] Out-of-order realtime events do not roll state backward. 
+##### **CLAUDE EXECUTION RULE**
 
-- [ ] Gate closure invalidates affected routes and creates versioned updates. 
+Treat every MUST statement as an acceptance criterion. Do not replace functional workflows with static mockups. Do not claim completion until the relevant tests, security checks, accessibility checks, linting, type-checking, and production build all pass.
 
-- [ ] Accessibility constraints never return stairs-only route for step-free requirement. 
-
-- [ ] Raw QR token, OTP, and secrets never appear in logs or API responses. 
-
-- [ ] Queries use indexes and bounded pagination. 
-
-- [ ] Demo seed can be reset to a known state through a protected development command. 
-
-##### **CLAUDE EXECUTION RULE** 
-
-Treat every MUST statement as an acceptance criterion. Do not replace functional workflows with static mockups. Do not claim completion until the relevant tests, security checks, accessibility checks, linting, type-checking, and production build all pass. 
-
-Implementation-ready specification  |  Claude input pack Page 5 
-
+Implementation-ready specification | Claude input pack Page 5
