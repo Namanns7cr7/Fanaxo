@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { readApiError } from '@/lib/api-error';
+
 const DEMO_TICKET_TOKEN = 'FNX-DEMO-GATEC-214-0001';
 
 export default function FanTicketPage() {
@@ -23,9 +25,8 @@ export default function FanTicketPage() {
         body: JSON.stringify({ token: ticketToken }),
       });
       if (!response.ok) {
-        const body = (await response.json()) as { message?: string };
         setStatus('error');
-        setErrorMessage(body.message ?? 'Verification failed. Please try again.');
+        setErrorMessage(await readApiError(response, 'Verification failed. Please try again.'));
         return;
       }
       router.push('/fan/dashboard');

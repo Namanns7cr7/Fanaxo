@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { readApiError } from '@/lib/api-error';
+
 export default function OperatorLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -32,8 +34,7 @@ export default function OperatorLoginPage() {
         }),
       });
       if (!response.ok) {
-        const body = (await response.json()) as { message?: string };
-        setErrorMessage(body.message ?? 'Sign-in failed. Please try again.');
+        setErrorMessage(await readApiError(response, 'Sign-in failed. Please try again.'));
         setBusy(false);
         return;
       }

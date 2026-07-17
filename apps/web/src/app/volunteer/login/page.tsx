@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { readApiError } from '@/lib/api-error';
+
 export default function VolunteerLoginPage() {
   const router = useRouter();
   const [badgeId, setBadgeId] = useState('');
@@ -27,8 +29,7 @@ export default function VolunteerLoginPage() {
         body: JSON.stringify({ badgeId: badgeId.trim(), otp: otp.trim() }),
       });
       if (!response.ok) {
-        const body = (await response.json()) as { message?: string };
-        setErrorMessage(body.message ?? 'Sign-in failed. Please try again.');
+        setErrorMessage(await readApiError(response, 'Sign-in failed. Please try again.'));
         setBusy(false);
         return;
       }
