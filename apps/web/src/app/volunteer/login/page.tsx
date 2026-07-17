@@ -19,14 +19,15 @@ export default function VolunteerLoginPage() {
     void submit();
   }
 
-  async function submit() {
+  async function submit(credentials?: { badgeId: string; otp: string }) {
+    const payload = credentials ?? { badgeId: badgeId.trim(), otp: otp.trim() };
     setBusy(true);
     setErrorMessage(null);
     try {
       const response = await fetch('/api/auth/volunteer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ badgeId: badgeId.trim(), otp: otp.trim() }),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) {
         setErrorMessage(await readApiError(response, 'Sign-in failed. Please try again.'));
@@ -38,6 +39,12 @@ export default function VolunteerLoginPage() {
       setErrorMessage('Network problem — check your connection and try again.');
       setBusy(false);
     }
+  }
+
+  function useDemoAccount() {
+    setBadgeId('V-1001');
+    setOtp('123456');
+    void submit({ badgeId: 'V-1001', otp: '123456' });
   }
 
   return (
@@ -99,9 +106,19 @@ export default function VolunteerLoginPage() {
           </button>
         </form>
 
-        <p className="border-surface-line mt-6 border-t pt-4 text-xs text-neutral-500">
-          Demo badges: V-1001 … V-1008 · code 123456
-        </p>
+        <div className="border-surface-line mt-6 border-t pt-6">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={useDemoAccount}
+            className="border-status-lime/40 text-status-lime hover:bg-status-lime/10 w-full rounded-lg border px-4 py-3 text-sm font-semibold transition-colors disabled:opacity-60"
+          >
+            Sign in as demo volunteer (Amara Osei · Gate C)
+          </button>
+          <p className="mt-3 text-xs text-neutral-500">
+            Demo badges: V-1001 … V-1008 · code 123456
+          </p>
+        </div>
       </div>
       <Link href="/select-role" className="mt-8 text-sm text-neutral-500 hover:text-neutral-300">
         ← Choose a different role

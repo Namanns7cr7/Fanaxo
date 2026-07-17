@@ -20,18 +20,19 @@ export default function OperatorLoginPage() {
     void submit();
   }
 
-  async function submit() {
+  async function submit(credentials?: { email: string; password: string; mfaCode: string }) {
+    const payload = credentials ?? {
+      email: email.trim(),
+      password,
+      mfaCode: mfaCode.trim(),
+    };
     setBusy(true);
     setErrorMessage(null);
     try {
       const response = await fetch('/api/auth/operator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-          mfaCode: mfaCode.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) {
         setErrorMessage(await readApiError(response, 'Sign-in failed. Please try again.'));
@@ -43,6 +44,18 @@ export default function OperatorLoginPage() {
       setErrorMessage('Network problem — check your connection and try again.');
       setBusy(false);
     }
+  }
+
+  function useDemoAccount() {
+    const demo = {
+      email: 'operator@fanaxo.demo',
+      password: 'FanaxoOps!2026',
+      mfaCode: '123456',
+    };
+    setEmail(demo.email);
+    setPassword(demo.password);
+    setMfaCode(demo.mfaCode);
+    void submit(demo);
   }
 
   return (
@@ -118,9 +131,19 @@ export default function OperatorLoginPage() {
           </button>
         </form>
 
-        <p className="border-surface-line mt-6 border-t pt-4 text-xs text-neutral-500">
-          Demo account: operator@fanaxo.demo · FanaxoOps!2026 · MFA 123456
-        </p>
+        <div className="border-surface-line mt-6 border-t pt-6">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={useDemoAccount}
+            className="border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10 w-full rounded-lg border px-4 py-3 text-sm font-semibold transition-colors disabled:opacity-60"
+          >
+            Sign in as demo operator (Val Reyes)
+          </button>
+          <p className="mt-3 text-xs text-neutral-500">
+            operator@fanaxo.demo · FanaxoOps!2026 · MFA 123456
+          </p>
+        </div>
       </div>
       <Link href="/select-role" className="mt-8 text-sm text-neutral-500 hover:text-neutral-300">
         ← Choose a different role

@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import { resolveActorOfKind } from '@/server/auth/session';
 import { getFanContext, getFanRouteSteps } from '@/server/services/fan-context';
 
+import { FanCompanion } from './FanCompanion';
+
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Fan dashboard' };
 
@@ -140,6 +142,13 @@ export default async function FanDashboardPage() {
                 updates live as conditions change
               </p>
             </section>
+
+            <FanCompanion
+              stepFreeInitial={
+                context.accessibilityProfile.flags.includes('step_free') ||
+                context.accessibilityProfile.flags.includes('wheelchair')
+              }
+            />
           </>
         )}
 
