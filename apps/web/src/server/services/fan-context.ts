@@ -20,7 +20,7 @@ import { desc, eq } from 'drizzle-orm';
 
 import { getDb } from '../db';
 import { publishEvent } from '../realtime/bus';
-import { computeTicketRoute } from './routing';
+import { computeTicketRoute, type RouteWithSteps } from './routing';
 
 const DEFAULT_PROFILE: AccessibilityProfile = AccessibilityProfileSchema.parse({});
 
@@ -109,6 +109,25 @@ export function getFanContext(actor: FanActor): FanContextResponse | null {
       publishedAt: notice.sentAt ?? notice.createdAt,
     })),
   };
+}
+
+/** Human-readable route steps for the current fan session, or [] if none. */
+export function getFanRouteSteps(actor: FanActor): RouteWithSteps['steps'] {
+  const session = getDb()
+    .db.select()
+    .from(fanSessions)
+    .where(eq(fanSessions.id, actor.sessionId))
+    .get();
+  if (session === undefined || session.ticketId === null) {
+    return [];
+  }
+  const profile = parseProfile(session.accessibilityProfile);
+  const result = computeTicketRoute(
+    actor.venueId,
+    session.ticketId,
+    profileToRoutePreferences(profile),
+  );
+  return result.ok ? result.value.steps : [];
 }
 
 export function updateFanPreferences(actor: FanActor, input: FanPreferencesUpdate): void {

@@ -203,12 +203,16 @@ export async function destroySession(): Promise<void> {
 
   const staffToken = cookieStore.get(STAFF_COOKIE)?.value;
   if (staffToken !== undefined) {
-    db.delete(staffSessions).where(eq(staffSessions.tokenHash, pepperedHash(staffToken))).run();
+    db.delete(staffSessions)
+      .where(eq(staffSessions.tokenHash, pepperedHash(staffToken)))
+      .run();
     cookieStore.delete(STAFF_COOKIE);
   }
   const fanToken = cookieStore.get(FAN_COOKIE)?.value;
   if (fanToken !== undefined) {
-    db.delete(fanSessions).where(eq(fanSessions.tokenHash, pepperedHash(fanToken))).run();
+    db.delete(fanSessions)
+      .where(eq(fanSessions.tokenHash, pepperedHash(fanToken)))
+      .run();
     cookieStore.delete(FAN_COOKIE);
   }
 }

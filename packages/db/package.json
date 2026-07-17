@@ -12,7 +12,8 @@
     }
   },
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
+    "build": "node scripts/embed-migrations.mjs && tsc --project tsconfig.build.json",
+    "embed:migrations": "node scripts/embed-migrations.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",

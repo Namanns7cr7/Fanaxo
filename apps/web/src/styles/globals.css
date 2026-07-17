@@ -18,7 +18,7 @@
 
   /* Visible focus on dark and light surfaces (spec 02 §12). */
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-cyan ring-offset-2 ring-offset-ink;
+    @apply ring-brand-cyan ring-offset-ink ring-2 ring-offset-2 outline-none;
   }
 
   /* Honor reduced motion globally (spec 07 §9). */

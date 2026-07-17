@@ -25,9 +25,7 @@ export type TicketVerifyOutcome =
  * Verify a demo ticket token and open a fan session. Invalid tokens all
  * return the same generic 'invalid' outcome to block enumeration.
  */
-export async function verifyTicketAndCreateSession(
-  token: string,
-): Promise<TicketVerifyOutcome> {
+export async function verifyTicketAndCreateSession(token: string): Promise<TicketVerifyOutcome> {
   const db = getDb().db;
   const allTickets = db.select().from(tickets).all();
   // Constant-time comparison per candidate; the demo table is small.

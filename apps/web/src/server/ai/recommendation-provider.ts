@@ -165,7 +165,10 @@ const STRUCTURED_PLAN_OUTPUT_FORMAT = {
       riskLevel: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
       confidence: { type: 'number', description: 'Confidence in the plan, 0 to 1' },
       redirectReason: { type: 'string', description: 'Why fans should be redirected' },
-      volunteerInstructions: { type: 'string', description: 'Instructions for assigned volunteers' },
+      volunteerInstructions: {
+        type: 'string',
+        description: 'Instructions for assigned volunteers',
+      },
       fanMessage: { type: 'string', description: 'Short fan-facing notification message' },
       limitations: { type: 'array', items: { type: 'string' }, description: 'Up to 5 caveats' },
     },

@@ -245,8 +245,7 @@ export function progressRecommendation(
   if (row === undefined || row.venueId !== venueId) {
     return;
   }
-  const target =
-    to === 'measured' ? RecommendationStatus.MEASURED : RecommendationStatus.CLOSED;
+  const target = to === 'measured' ? RecommendationStatus.MEASURED : RecommendationStatus.CLOSED;
   if (!transition(recommendationTransitions, row.status, target).ok) {
     return;
   }

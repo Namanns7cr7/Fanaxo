@@ -84,10 +84,7 @@ export function loadLiveGraph(venueId: string): LiveGraph {
   for (const node of typedNodes) {
     const gate = node.zoneId === undefined ? undefined : gateByZoneId.get(node.zoneId);
     if (gate !== undefined) {
-      gateStatusByNodeId.set(
-        node.id,
-        gate.status === 'reopening' ? 'restricted' : gate.status,
-      );
+      gateStatusByNodeId.set(node.id, gate.status === 'reopening' ? 'restricted' : gate.status);
     }
   }
   const nodeZone = new Map(typedNodes.map((node) => [node.id, node.zoneId]));
@@ -161,9 +158,7 @@ export function computeRoute(
       nodeId,
       nodeName: node?.name ?? 'Unknown',
       instruction:
-        node === undefined
-          ? 'Continue'
-          : instructionFor(node, index === route.nodeIds.length - 1),
+        node === undefined ? 'Continue' : instructionFor(node, index === route.nodeIds.length - 1),
       distanceMeters: inboundEdge?.distance ?? 0,
     };
   });
@@ -194,8 +189,7 @@ export function computeTicketRoute(
     .get();
   const { nodesByZoneId } = loadLiveGraph(venueId);
   const originNode = findTransitOrigin(venueId);
-  const destinationNode =
-    sectionZone === undefined ? undefined : nodesByZoneId.get(sectionZone.id);
+  const destinationNode = sectionZone === undefined ? undefined : nodesByZoneId.get(sectionZone.id);
   if (originNode === undefined || destinationNode === undefined) {
     return {
       ok: false,

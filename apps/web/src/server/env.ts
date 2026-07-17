@@ -29,7 +29,18 @@ let cached: Env | null = null;
 
 export function getEnv(): Env {
   if (cached === null) {
-    const parsed = EnvSchema.safeParse(process.env);
+    // Read each key by name: bundlers (Next.js/webpack) only inline
+    // explicitly-referenced process.env keys, so passing process.env
+    // wholesale to safeParse would drop everything and skip the defaults.
+    const raw = {
+      NODE_ENV: process.env.NODE_ENV,
+      DATABASE_FILE: process.env.DATABASE_FILE,
+      SESSION_SECRET: process.env.SESSION_SECRET,
+      AI_PROVIDER: process.env.AI_PROVIDER,
+      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+      DEMO_MODE: process.env.DEMO_MODE,
+    };
+    const parsed = EnvSchema.safeParse(raw);
     if (!parsed.success) {
       const issues = parsed.error.issues
         .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
