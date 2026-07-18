@@ -17,9 +17,12 @@ coverage/
 .env.*.local
 !.env.example
 
-# Database
+# Database (runtime SQLite files and its WAL sidecars)
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
+.data/
 prisma/migrations/dev/
 
 # IDE

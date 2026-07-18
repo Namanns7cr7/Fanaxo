@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { zones } from '@fanaxo/db';
 import { eq } from 'drizzle-orm';
 
+import { BackButton } from '@/components/BackButton';
 import { SignOutButton } from '@/components/SignOutButton';
 import { resolveActorOfKind } from '@/server/auth/session';
 import { getDb } from '@/server/db';
@@ -49,6 +50,10 @@ export default async function VolunteerDashboardPage() {
         </header>
 
         <VolunteerConsole tasks={openTasks} defaultZoneId={actor.zoneId} />
+
+        <div className="border-surface-line mt-8 flex justify-start border-t pt-4">
+          <BackButton href="/select-role" label="Switch role" />
+        </div>
       </div>
     </main>
   );

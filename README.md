@@ -16,11 +16,11 @@ The headline is the **connected Gate C scenario**: an operator sees Gate C surge
 
 ## What each role can do
 
-| Role | Experience |
-|---|---|
-| **Fan** | Verify a demo ticket → personalized crowd-aware route to your seat, step-free routing toggle, a **grounded AI assistant** (seat, facilities, route, kickoff — cites its sources, never guesses), a facilities finder with live walk times, and one-tap volunteer assistance. |
-| **Volunteer** | Badge + OTP login → zone-scoped task list you can **accept / start / complete / escalate**, plus an **incident report** form that reaches the operator instantly. |
-| **Operator** | Command center: live gate density, incidents, workforce, and AI recommendations. **Simulate a Gate C surge**, then **approve / reject** the AI plan — approving executes real actions (gate changes, volunteer tasks, localized notifications, fan reroutes). |
+| Role          | Experience                                                                                                                                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Fan**       | Verify a demo ticket → personalized crowd-aware route to your seat, step-free routing toggle, a **grounded AI assistant** (seat, facilities, route, kickoff — cites its sources, never guesses), a facilities finder with live walk times, and one-tap volunteer assistance. |
+| **Volunteer** | Badge + OTP login → zone-scoped task list you can **accept / start / complete / escalate**, plus an **incident report** form that reaches the operator instantly.                                                                                                            |
+| **Operator**  | Command center: live gate density, incidents, workforce, and AI recommendations. **Simulate a Gate C surge**, then **approve / reject** the AI plan — approving executes real actions (gate changes, volunteer tasks, localized notifications, fan reroutes).                |
 
 ---
 
@@ -54,7 +54,7 @@ packages/
 
 **Principles the code holds to:**
 
-- **AI is a copilot, not the source of truth.** Routes, densities, and operational state come from trusted services. The model *explains* a route the graph service computed and *proposes* plans as schema-validated objects — it never invents facts or executes actions. Every high-impact action requires explicit operator approval, and there's a deterministic fallback when no model is configured.
+- **AI is a copilot, not the source of truth.** Routes, densities, and operational state come from trusted services. The model _explains_ a route the graph service computed and _proposes_ plans as schema-validated objects — it never invents facts or executes actions. Every high-impact action requires explicit operator approval, and there's a deterministic fallback when no model is configured.
 - **Server-side authorization, always.** Role, venue scope, and resource ownership are derived from the session, never trusted from the client. Authorization is deny-by-default and covered by negative (IDOR) tests.
 - **Grounded, guarded assistant.** The fan assistant answers only from a fact sheet built by trusted services, treats the user's message as untrusted data, and escalates to a human when the facts don't cover the question.
 - **Versioned realtime events.** Every state change is an idempotent, versioned envelope; consumers ignore stale versions and reconcile on reconnect.
@@ -87,11 +87,11 @@ pnpm db:seed
 
 ### Demo credentials (demo mode only)
 
-| Role | Credential |
-|---|---|
-| **Fan** | Ticket `FNX-DEMO-GATEC-214-0001` — or click "Use the demo ticket" |
-| **Volunteer** | Badge `V-1001` … `V-1008`, OTP `123456` — or click "Sign in as demo volunteer" |
-| **Operator** | `operator@fanaxo.demo` / `FanaxoOps!2026`, MFA `123456` — or click "Sign in as demo operator" |
+| Role          | Credential                                                                                    |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| **Fan**       | Ticket `FNX-DEMO-GATEC-214-0001` — or click "Use the demo ticket"                             |
+| **Volunteer** | Badge `V-1001` … `V-1008`, OTP `123456` — or click "Sign in as demo volunteer"                |
+| **Operator**  | `operator@fanaxo.demo` / `FanaxoOps!2026`, MFA `123456` — or click "Sign in as demo operator" |
 
 These are intentionally public and seeded only when `DEMO_MODE=true`. **No real secrets are in this repository.**
 

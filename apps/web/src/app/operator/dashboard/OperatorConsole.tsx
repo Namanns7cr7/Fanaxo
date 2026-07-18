@@ -1,6 +1,19 @@
 'use client';
 
-import { Activity, Check, DoorOpen, Loader2, Siren, Sparkles, Users, X, Zap } from 'lucide-react';
+import {
+  Activity,
+  Check,
+  Clock,
+  DoorOpen,
+  Gauge,
+  Loader2,
+  Siren,
+  Sparkles,
+  Users,
+  UsersRound,
+  X,
+  Zap,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -46,6 +59,7 @@ interface Props {
   incidents: OperatorIncident[];
   recommendations: OperatorRecommendation[];
   volunteers: OperatorVolunteer[];
+  aiPowered: boolean;
 }
 
 function densityBadge(density: number): { label: string; className: string } {
@@ -62,6 +76,7 @@ export function OperatorConsole({
   incidents,
   recommendations,
   volunteers,
+  aiPowered,
 }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -87,6 +102,17 @@ export function OperatorConsole({
     }
   }
 
+  const totalFans = gates.reduce((sum, gate) => sum + gate.currentCount, 0);
+  const avgQueue =
+    gates.length === 0
+      ? 0
+      : Math.round(gates.reduce((sum, gate) => sum + gate.queueMinutes, 0) / gates.length);
+  const peakDensity = gates.reduce(
+    (max, gate) => Math.max(max, gate.capacity > 0 ? gate.currentCount / gate.capacity : 0),
+    0,
+  );
+  const peak = densityBadge(peakDensity);
+
   return (
     <div>
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -97,20 +123,50 @@ export function OperatorConsole({
             Live · signed in as {operatorName}
           </p>
         </div>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void simulateSurge()}
-          className="bg-brand-purple font-display hover:bg-brand-purple/85 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-60"
-        >
-          {busy ? (
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          ) : (
-            <Zap className="h-4 w-4" aria-hidden="true" />
-          )}
-          Simulate Gate C surge
-        </button>
+        <div className="flex items-center gap-3">
+          <span
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${
+              aiPowered
+                ? 'border-brand-purple/50 text-brand-purple'
+                : 'border-surface-line text-neutral-400'
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            {aiPowered ? 'AI: Claude (live)' : 'AI: rule-based'}
+          </span>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void simulateSurge()}
+            className="bg-brand-purple font-display hover:bg-brand-purple/85 flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-60"
+          >
+            {busy ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Zap className="h-4 w-4" aria-hidden="true" />
+            )}
+            Simulate Gate C surge
+          </button>
+        </div>
       </header>
+
+      <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-5">
+        <Kpi Icon={UsersRound} label="Fans in venue" value={totalFans.toLocaleString()} />
+        <Kpi Icon={Clock} label="Avg gate queue" value={`${avgQueue} min`} />
+        <Kpi
+          Icon={Gauge}
+          label="Peak density"
+          value={peak.label}
+          valueClassName={peak.className.split(' ').find((cls) => cls.startsWith('text-'))}
+        />
+        <Kpi
+          Icon={Siren}
+          label="Open incidents"
+          value={String(incidents.length)}
+          valueClassName={incidents.length > 0 ? 'text-status-orange' : undefined}
+        />
+        <Kpi Icon={Users} label="Volunteers free" value={String(volunteers.length)} />
+      </dl>
 
       {notice !== null && (
         <p
@@ -135,6 +191,34 @@ export function OperatorConsole({
         <IncidentsPanel incidents={incidents} />
         <WorkforcePanel volunteers={volunteers} />
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// KPI tile
+// ---------------------------------------------------------------------------
+
+function Kpi({
+  Icon,
+  label,
+  value,
+  valueClassName,
+}: {
+  Icon: typeof Gauge;
+  label: string;
+  value: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="border-surface-line bg-surface rounded-xl border p-4">
+      <dt className="flex items-center gap-1.5 text-xs tracking-wide text-neutral-500 uppercase">
+        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+        {label}
+      </dt>
+      <dd className={`font-display mt-1 text-2xl font-bold ${valueClassName ?? 'text-white'}`}>
+        {value}
+      </dd>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { CalendarClock, DoorOpen, Footprints, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import { BackButton } from '@/components/BackButton';
 import { SignOutButton } from '@/components/SignOutButton';
 import { resolveActorOfKind } from '@/server/auth/session';
 import { getFanContext, getFanRouteSteps } from '@/server/services/fan-context';
@@ -33,7 +34,10 @@ export default async function FanDashboardPage() {
     <main id="main" className="bg-ink min-h-screen px-4 py-8 sm:px-8">
       <div className="mx-auto max-w-2xl">
         <header className="flex items-center justify-between">
-          <h1 className="font-display text-2xl font-bold text-white">Your matchday</h1>
+          <div className="flex items-center gap-4">
+            <BackButton href="/select-role" label="Roles" />
+            <h1 className="font-display text-2xl font-bold text-white">Your matchday</h1>
+          </div>
           <SignOutButton />
         </header>
 

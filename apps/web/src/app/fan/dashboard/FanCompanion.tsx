@@ -13,6 +13,7 @@ import {
 import { useState, type FormEvent } from 'react';
 
 import { readApiError } from '@/lib/api-error';
+import { uuid } from '@/lib/uuid';
 
 type Tab = 'assistant' | 'facilities' | 'help' | 'access';
 
@@ -331,7 +332,7 @@ function HelpPanel() {
         body: JSON.stringify({
           category,
           description: description.trim(),
-          clientRequestId: crypto.randomUUID(),
+          clientRequestId: uuid(),
         }),
       });
       if (!response.ok) {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
 import { readApiError } from '@/lib/api-error';
+import { uuid } from '@/lib/uuid';
 
 export interface VolunteerTask {
   id: string;
@@ -195,7 +196,7 @@ function ReportIncident({ defaultZoneId }: { defaultZoneId: string }) {
           zoneId: defaultZoneId,
           category,
           description: description.trim(),
-          clientRequestId: crypto.randomUUID(),
+          clientRequestId: uuid(),
         }),
       });
       if (!response.ok) {
@@ -251,15 +252,26 @@ function ReportIncident({ defaultZoneId }: { defaultZoneId: string }) {
           <textarea
             id="incident-description"
             value={description}
-            onChange={(event) => setDescription(event.target.value)}
+            onChange={(event) => {
+              setDescription(event.target.value);
+              if (done) setDone(false);
+            }}
             rows={3}
-            minLength={10}
             maxLength={1000}
             placeholder="Describe the situation and exact location…"
             className="border-surface-line bg-ink mt-1 w-full rounded-lg border px-4 py-2.5 text-sm text-white placeholder:text-neutral-600"
           />
-          <p className="mt-1 text-xs text-neutral-500">
-            The operator sees this instantly. Severity is set automatically by category.
+          <p className="mt-1 flex items-center justify-between text-xs text-neutral-500">
+            <span>The operator sees this instantly. Severity is set automatically.</span>
+            <span
+              className={
+                description.trim().length < 10 ? 'text-status-orange' : 'text-status-green'
+              }
+            >
+              {description.trim().length < 10
+                ? `${10 - description.trim().length} more characters`
+                : 'ready'}
+            </span>
           </p>
         </div>
         {error !== null && (
