@@ -7,7 +7,8 @@ import 'server-only';
 
 import { randomUUID } from 'node:crypto';
 
-import { ApiErrorCode, type ApiError } from '@fanaxo/contracts';
+import { ApiErrorCode, type ApiError, type Actor } from '@fanaxo/contracts';
+import { authorize, type PolicyAction, type ResourceScope } from '@fanaxo/auth';
 import { DomainErrorCode, type DomainError } from '@fanaxo/domain';
 import { NextResponse } from 'next/server';
 import type { ZodError, ZodTypeAny, z } from 'zod';
@@ -91,6 +92,23 @@ export async function parseBody<S extends ZodTypeAny>(
 
 export function newCorrelationId(): string {
   return randomUUID();
+}
+
+/**
+ * Server-side authorization gate. Returns a 403 response when denied, or null
+ * when allowed — the sole enforcement point for privileged actions (spec 07
+ * §4). The denial reason is audit-safe and not leaked to the client.
+ */
+export function forbiddenUnlessAuthorized(
+  actor: Actor,
+  action: PolicyAction,
+  resource: ResourceScope,
+): NextResponse | null {
+  const decision = authorize(actor, action, resource);
+  if (!decision.allowed) {
+    return jsonError(ApiErrorCode.FORBIDDEN, 'You are not allowed to perform this action.');
+  }
+  return null;
 }
 
 /** Client key for rate limiting: forwarded IP or a stable fallback. */

@@ -2,6 +2,7 @@ import { CalendarClock, DoorOpen, Footprints, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import { SignOutButton } from '@/components/SignOutButton';
 import { resolveActorOfKind } from '@/server/auth/session';
 import { getFanContext, getFanRouteSteps } from '@/server/services/fan-context';
 
@@ -33,11 +34,7 @@ export default async function FanDashboardPage() {
       <div className="mx-auto max-w-2xl">
         <header className="flex items-center justify-between">
           <h1 className="font-display text-2xl font-bold text-white">Your matchday</h1>
-          <form action="/api/auth/logout" method="post">
-            <button type="submit" className="text-sm text-neutral-400 hover:text-white">
-              Sign out
-            </button>
-          </form>
+          <SignOutButton />
         </header>
 
         {context.ticket === null ? (

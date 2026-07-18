@@ -34,5 +34,5 @@ export async function POST(request: Request): Promise<Response> {
     return body.response;
   }
 
-  return jsonOk(answerFanQuestion(actor, body.data.question));
+  return jsonOk(await answerFanQuestion(actor, body.data.question));
 }
