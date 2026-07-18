@@ -62,6 +62,11 @@ interface Props {
   aiPowered: boolean;
 }
 
+/** Deterministic thousands separator — avoids server/client locale hydration mismatch. */
+function formatThousands(value: number): string {
+  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 function densityBadge(density: number): { label: string; className: string } {
   if (density >= 0.85) return { label: 'Severe', className: 'bg-status-red/20 text-status-red' };
   if (density >= 0.65)
@@ -151,7 +156,7 @@ export function OperatorConsole({
       </header>
 
       <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-5">
-        <Kpi Icon={UsersRound} label="Fans in venue" value={totalFans.toLocaleString()} />
+        <Kpi Icon={UsersRound} label="Fans in venue" value={formatThousands(totalFans)} />
         <Kpi Icon={Clock} label="Avg gate queue" value={`${avgQueue} min`} />
         <Kpi
           Icon={Gauge}
