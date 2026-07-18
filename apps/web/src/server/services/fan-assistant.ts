@@ -16,7 +16,7 @@ import type { FanActor } from '@fanaxo/contracts';
 import { fanSessions } from '@fanaxo/db';
 import { eq } from 'drizzle-orm';
 
-import { getEnv } from '../env';
+import { isClaudeEnabled, isGeminiEnabled } from '../env';
 import { getDb } from '../db';
 import { findFacilitiesForFan, type FacilityKind } from './facilities';
 import { getFanContext, profileToRoutePreferences } from './fan-context';
@@ -142,8 +142,12 @@ export function renderFactSheet(facts: FanFactSheet): string {
 // Deterministic answerer (fallback; always available, no model)
 // ---------------------------------------------------------------------------
 
-type Intent = 'seat' | 'gate' | 'food' | 'restroom' | 'medical' | 'route' | 'kickoff' | 'help';
+type Intent =
+  'greeting' | 'seat' | 'gate' | 'food' | 'restroom' | 'medical' | 'route' | 'kickoff' | 'help';
 
+// Ordered so specific venue intents win over a generic greeting: a message like
+// "hi, where is my seat?" resolves to `seat`, while a bare "hii" resolves to
+// `greeting`. Greeting is intentionally last for this reason.
 const INTENT_KEYWORDS: Record<Intent, readonly string[]> = {
   seat: ['seat', 'section', 'row', 'where do i sit', 'my place'],
   gate: ['gate', 'entrance', 'enter', 'get in', 'entry'],
@@ -153,12 +157,29 @@ const INTENT_KEYWORDS: Record<Intent, readonly string[]> = {
   route: ['route', 'way', 'direction', 'navigate', 'how do i get', 'how to get', 'walk'],
   kickoff: ['kickoff', 'kick off', 'start', 'when', 'time', 'begin'],
   help: ['help', 'assist', 'volunteer', 'lost', 'staff', 'support'],
+  greeting: [
+    'hi',
+    'hii',
+    'hey',
+    'hello',
+    'yo',
+    'howdy',
+    'greetings',
+    'good morning',
+    'good evening',
+  ],
 };
+
+/** Match keywords on word boundaries so "hi" never fires inside "this"/"which". */
+function matchesKeyword(text: string, keyword: string): boolean {
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`\\b${escaped}\\b`).test(text);
+}
 
 function detectIntent(question: string): Intent | null {
   const text = question.toLowerCase();
   for (const [intent, keywords] of Object.entries(INTENT_KEYWORDS) as [Intent, string[]][]) {
-    if (keywords.some((keyword) => text.includes(keyword))) {
+    if (keywords.some((keyword) => matchesKeyword(text, keyword))) {
       return intent;
     }
   }
@@ -183,6 +204,16 @@ const SIMPLE_HANDLERS: Record<
   Exclude<Intent, 'food' | 'restroom' | 'medical'>,
   (facts: FanFactSheet) => AssistantReply
 > = {
+  greeting: (facts) => ({
+    answer: `Hi, and welcome to ${facts.matchLabel} at ${facts.venueName}! I can help with your seat (Section ${facts.section}), the fastest route in, nearby food and restrooms, and kick-off time. What would you like to know?`,
+    sources: ['Your ticket'],
+    suggestions: [
+      'How do I get to my seat?',
+      'Where can I get food?',
+      'When does the match start?',
+    ],
+    escalated: false,
+  }),
   seat: (facts) => ({
     answer: `Your seat is Section ${facts.section}, Row ${facts.row}, Seat ${facts.seat}. Enter through ${facts.gateName}.`,
     sources: ['Your ticket'],
@@ -266,11 +297,17 @@ export async function answerFanQuestion(
     };
   }
 
-  const env = getEnv();
-  if (env.AI_PROVIDER === 'anthropic' && env.ANTHROPIC_API_KEY !== undefined) {
+  if (isClaudeEnabled()) {
     try {
       const { anthropicFanAnswer } = await import('../ai/fan-assistant-ai');
       return await anthropicFanAnswer(facts, question);
+    } catch {
+      // Model unavailable, timed out, or output failed validation: fall back.
+    }
+  } else if (isGeminiEnabled()) {
+    try {
+      const { geminiFanAnswer } = await import('../ai/gemini-fan-answer');
+      return await geminiFanAnswer(facts, question);
     } catch {
       // Model unavailable, timed out, or output failed validation: fall back.
     }

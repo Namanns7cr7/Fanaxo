@@ -8,7 +8,7 @@ import { BackButton } from '@/components/BackButton';
 import { SignOutButton } from '@/components/SignOutButton';
 import { resolveActorOfKind } from '@/server/auth/session';
 import { getDb } from '@/server/db';
-import { getEnv } from '@/server/env';
+import { activeAiLabel, isAiEnabled } from '@/server/env';
 import { listGates } from '@/server/services/gates';
 import { listVenueIncidents } from '@/server/services/incidents';
 import { listRecommendations } from '@/server/services/recommendations';
@@ -109,9 +109,8 @@ export default async function OperatorDashboardPage() {
           incidents={incidents}
           recommendations={recommendations}
           volunteers={volunteers}
-          aiPowered={
-            getEnv().AI_PROVIDER === 'anthropic' && getEnv().ANTHROPIC_API_KEY !== undefined
-          }
+          aiPowered={isAiEnabled()}
+          aiLabel={activeAiLabel()}
         />
         <div className="border-surface-line mt-8 flex items-center justify-between border-t pt-4">
           <BackButton href="/select-role" label="Switch role" />

@@ -1,7 +1,14 @@
 'use client';
 
-import { CheckCircle2, ClipboardList, Loader2, Play, Send, TriangleAlert } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import {
+  CheckCircle2,
+  ClipboardList,
+  HandHelping,
+  Loader2,
+  Play,
+  Send,
+  TriangleAlert,
+} from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 import { readApiError } from '@/lib/api-error';
@@ -16,11 +23,27 @@ export interface VolunteerTask {
   version: number;
 }
 
+export interface HelpRequest {
+  id: string;
+  category: string;
+  description: string;
+  zoneName: string;
+}
+
 const PRIORITY_STYLES: Record<string, string> = {
   urgent: 'bg-status-red/20 text-status-red',
   high: 'bg-status-orange/20 text-status-orange',
   medium: 'bg-brand-cyan/20 text-brand-cyan',
   low: 'bg-neutral-500/20 text-neutral-300',
+};
+
+/** Target status for each task action (mirrors the domain task state machine). */
+const ACTION_TARGET: Record<string, string> = {
+  accept: 'accepted',
+  start: 'in_progress',
+  complete: 'completed',
+  escalate: 'escalated',
+  cancel: 'cancelled',
 };
 
 /** The next lifecycle action offered for a task in a given status. */
@@ -38,28 +61,127 @@ function nextAction(status: string): { action: string; label: string; Icon: type
 }
 
 export function VolunteerConsole({
-  tasks,
+  tasks: initialTasks,
+  helpRequests: initialRequests,
   defaultZoneId,
 }: {
   tasks: VolunteerTask[];
+  helpRequests: HelpRequest[];
   defaultZoneId: string;
 }) {
+  const [tasks, setTasks] = useState(initialTasks);
+  const [requests, setRequests] = useState(initialRequests);
+
   return (
     <div className="mt-8 space-y-8">
-      <TaskList tasks={tasks} />
+      <HelpRequests requests={requests} setRequests={setRequests} />
+      <TaskList tasks={tasks} setTasks={setTasks} />
       <ReportIncident defaultZoneId={defaultZoneId} />
     </div>
   );
 }
 
-function TaskList({ tasks }: { tasks: VolunteerTask[] }) {
-  const router = useRouter();
-  const [pendingId, setPendingId] = useState<string | null>(null);
+// ---------------------------------------------------------------------------
+// Fan help requests (fan → volunteer connection)
+// ---------------------------------------------------------------------------
+
+function HelpRequests({
+  requests,
+  setRequests,
+}: {
+  requests: HelpRequest[];
+  setRequests: (updater: (prev: HelpRequest[]) => HelpRequest[]) => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+
+  async function respond(request: HelpRequest) {
+    // Optimistic: remove immediately so the tap feels instant.
+    setRequests((prev) => prev.filter((item) => item.id !== request.id));
+    setError(null);
+    try {
+      const response = await fetch(`/api/assistance/${request.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'acknowledge' }),
+      });
+      if (!response.ok) {
+        setError(await readApiError(response, 'Could not accept the request.'));
+        setRequests((prev) => [request, ...prev]); // revert
+      }
+    } catch {
+      setError('Network problem — please try again.');
+      setRequests((prev) => [request, ...prev]); // revert
+    }
+  }
+
+  if (requests.length === 0) {
+    return null;
+  }
+
+  return (
+    <section aria-label="Fan help requests">
+      <h2 className="font-display flex items-center gap-2 text-lg font-bold text-white">
+        <HandHelping className="text-brand-cyan h-5 w-5" aria-hidden="true" />
+        Fans need help
+        <span className="bg-brand-cyan/20 text-brand-cyan rounded-full px-2.5 py-0.5 text-xs font-semibold">
+          {requests.length}
+        </span>
+      </h2>
+      {error !== null && (
+        <p role="alert" className="text-status-red mt-3 text-sm">
+          {error}
+        </p>
+      )}
+      <ul className="mt-4 space-y-3">
+        {requests.map((request) => (
+          <li
+            key={request.id}
+            className="border-brand-cyan/40 bg-surface flex items-start justify-between gap-4 rounded-2xl border p-5"
+          >
+            <div>
+              <p className="text-brand-cyan text-xs font-bold tracking-wide uppercase">
+                {request.category.replaceAll('_', ' ')} · {request.zoneName}
+              </p>
+              <p className="mt-1 text-sm text-neutral-200">{request.description}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void respond(request)}
+              className="bg-brand-cyan text-ink hover:bg-brand-cyan/85 shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+            >
+              I&rsquo;ll help
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tasks (optimistic actions)
+// ---------------------------------------------------------------------------
+
+function TaskList({
+  tasks,
+  setTasks,
+}: {
+  tasks: VolunteerTask[];
+  setTasks: (updater: (prev: VolunteerTask[]) => VolunteerTask[]) => void;
+}) {
   const [error, setError] = useState<string | null>(null);
 
   async function act(task: VolunteerTask, action: string) {
-    setPendingId(task.id);
+    const target = ACTION_TARGET[action] ?? task.status;
     setError(null);
+    // Optimistic: reflect the new status (or drop it when terminal) instantly.
+    const isTerminal = target === 'completed' || target === 'cancelled';
+    setTasks((prev) =>
+      isTerminal
+        ? prev.filter((item) => item.id !== task.id)
+        : prev.map((item) => (item.id === task.id ? { ...item, status: target } : item)),
+    );
+
     try {
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: 'PATCH',
@@ -68,13 +190,18 @@ function TaskList({ tasks }: { tasks: VolunteerTask[] }) {
       });
       if (!response.ok) {
         setError(await readApiError(response, 'Could not update the task.'));
+        // Revert to the original task on failure.
+        setTasks((prev) => {
+          const withoutTask = prev.filter((item) => item.id !== task.id);
+          return [task, ...withoutTask].sort((a, b) => a.title.localeCompare(b.title));
+        });
         return;
       }
-      router.refresh();
+      // Sync the authoritative version from the server so the next action works.
+      const body = (await response.json()) as { task: VolunteerTask };
+      setTasks((prev) => prev.map((item) => (item.id === task.id ? body.task : item)));
     } catch {
       setError('Network problem — please try again.');
-    } finally {
-      setPendingId(null);
     }
   }
 
@@ -106,7 +233,6 @@ function TaskList({ tasks }: { tasks: VolunteerTask[] }) {
         <ul className="mt-4 space-y-3">
           {tasks.map((task) => {
             const action = nextAction(task.status);
-            const busy = pendingId === task.id;
             return (
               <li key={task.id} className="border-surface-line bg-surface rounded-2xl border p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -126,9 +252,8 @@ function TaskList({ tasks }: { tasks: VolunteerTask[] }) {
                     {task.status !== 'escalated' && (
                       <button
                         type="button"
-                        disabled={busy}
                         onClick={() => void act(task, 'escalate')}
-                        className="border-surface-line hover:border-status-orange flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs text-neutral-300 transition-colors hover:text-white disabled:opacity-50"
+                        className="border-surface-line hover:border-status-orange flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs text-neutral-300 transition-colors hover:text-white"
                       >
                         <TriangleAlert className="h-3.5 w-3.5" aria-hidden="true" />
                         Escalate
@@ -137,15 +262,10 @@ function TaskList({ tasks }: { tasks: VolunteerTask[] }) {
                     {action !== null && (
                       <button
                         type="button"
-                        disabled={busy}
                         onClick={() => void act(task, action.action)}
-                        className="bg-status-lime text-ink hover:bg-status-lime/85 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50"
+                        className="bg-status-lime text-ink hover:bg-status-lime/85 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
                       >
-                        {busy ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                        ) : (
-                          <action.Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                        )}
+                        <action.Icon className="h-3.5 w-3.5" aria-hidden="true" />
                         {action.label}
                       </button>
                     )}
@@ -160,6 +280,10 @@ function TaskList({ tasks }: { tasks: VolunteerTask[] }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Report an incident
+// ---------------------------------------------------------------------------
+
 const INCIDENT_CATEGORIES = [
   { value: 'crowd_congestion', label: 'Crowd congestion' },
   { value: 'medical', label: 'Medical' },
@@ -172,7 +296,6 @@ const INCIDENT_CATEGORIES = [
 ] as const;
 
 function ReportIncident({ defaultZoneId }: { defaultZoneId: string }) {
-  const router = useRouter();
   const [category, setCategory] =
     useState<(typeof INCIDENT_CATEGORIES)[number]['value']>('crowd_congestion');
   const [description, setDescription] = useState('');
@@ -205,7 +328,6 @@ function ReportIncident({ defaultZoneId }: { defaultZoneId: string }) {
       }
       setDone(true);
       setDescription('');
-      router.refresh();
     } catch {
       setError('Network problem — please try again.');
     } finally {

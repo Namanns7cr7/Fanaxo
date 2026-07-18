@@ -60,6 +60,8 @@ interface Props {
   recommendations: OperatorRecommendation[];
   volunteers: OperatorVolunteer[];
   aiPowered: boolean;
+  /** Name of the live model backing the copilots, e.g. "Claude" or "Gemini". */
+  aiLabel: string;
 }
 
 /** Deterministic thousands separator — avoids server/client locale hydration mismatch. */
@@ -82,8 +84,11 @@ export function OperatorConsole({
   recommendations,
   volunteers,
   aiPowered,
+  aiLabel,
 }: Props) {
   const router = useRouter();
+  const [gateList, setGateList] = useState(gates);
+  const [recs, setRecs] = useState(recommendations);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -99,6 +104,7 @@ export function OperatorConsole({
         return;
       }
       setNotice('Gate C surge simulated — an AI recommendation is awaiting your approval below.');
+      // Pull the freshly-generated recommendation and updated gate telemetry.
       router.refresh();
     } catch {
       setError('Network problem — please try again.');
@@ -107,12 +113,12 @@ export function OperatorConsole({
     }
   }
 
-  const totalFans = gates.reduce((sum, gate) => sum + gate.currentCount, 0);
+  const totalFans = gateList.reduce((sum, gate) => sum + gate.currentCount, 0);
   const avgQueue =
-    gates.length === 0
+    gateList.length === 0
       ? 0
-      : Math.round(gates.reduce((sum, gate) => sum + gate.queueMinutes, 0) / gates.length);
-  const peakDensity = gates.reduce(
+      : Math.round(gateList.reduce((sum, gate) => sum + gate.queueMinutes, 0) / gateList.length);
+  const peakDensity = gateList.reduce(
     (max, gate) => Math.max(max, gate.capacity > 0 ? gate.currentCount / gate.capacity : 0),
     0,
   );
@@ -137,7 +143,7 @@ export function OperatorConsole({
             }`}
           >
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-            {aiPowered ? 'AI: Claude (live)' : 'AI: rule-based'}
+            {aiPowered ? `AI: ${aiLabel} (live)` : 'AI: rule-based'}
           </span>
           <button
             type="button"
@@ -187,12 +193,21 @@ export function OperatorConsole({
         </p>
       )}
 
-      {recommendations.length > 0 && (
-        <RecommendationsPanel recommendations={recommendations} onDone={() => router.refresh()} />
+      {recs.length > 0 && (
+        <RecommendationsPanel
+          recommendations={recs}
+          onDecided={(id) => setRecs((prev) => prev.filter((rec) => rec.id !== id))}
+          onExecuted={() => router.refresh()}
+        />
       )}
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <GatesPanel gates={gates} onDone={() => router.refresh()} />
+        <GatesPanel
+          gates={gateList}
+          onChanged={(gate) =>
+            setGateList((prev) => prev.map((item) => (item.gateId === gate.gateId ? gate : item)))
+          }
+        />
         <IncidentsPanel incidents={incidents} />
         <WorkforcePanel volunteers={volunteers} />
       </div>
@@ -234,10 +249,12 @@ function Kpi({
 
 function RecommendationsPanel({
   recommendations,
-  onDone,
+  onDecided,
+  onExecuted,
 }: {
   recommendations: OperatorRecommendation[];
-  onDone: () => void;
+  onDecided: (id: string) => void;
+  onExecuted: () => void;
 }) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -262,7 +279,11 @@ function RecommendationsPanel({
         setError(await readApiError(response, 'Could not record your decision.'));
         return;
       }
-      onDone();
+      // Remove from the queue instantly; refresh KPIs/gates in the background.
+      onDecided(rec.id);
+      if (decision === 'approved') {
+        onExecuted();
+      }
     } catch {
       setError('Network problem — please try again.');
     } finally {
@@ -349,13 +370,21 @@ function RecommendationsPanel({
 // Gates
 // ---------------------------------------------------------------------------
 
-function GatesPanel({ gates, onDone }: { gates: OperatorGate[]; onDone: () => void }) {
+function GatesPanel({
+  gates,
+  onChanged,
+}: {
+  gates: OperatorGate[];
+  onChanged: (gate: OperatorGate) => void;
+}) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function changeGate(gate: OperatorGate, status: 'restricted' | 'closed' | 'reopening') {
     setPendingId(gate.gateId);
     setError(null);
+    // Optimistic: reflect the new status immediately.
+    onChanged({ ...gate, status, version: gate.version + 1 });
     try {
       const response = await fetch(`/api/gates/${gate.gateId}`, {
         method: 'PATCH',
@@ -369,11 +398,15 @@ function GatesPanel({ gates, onDone }: { gates: OperatorGate[]; onDone: () => vo
       });
       if (!response.ok) {
         setError(await readApiError(response, 'Could not change the gate.'));
+        onChanged(gate); // revert
         return;
       }
-      onDone();
+      // Sync the authoritative gate (correct version) from the server.
+      const body = (await response.json()) as { gate: OperatorGate };
+      onChanged(body.gate);
     } catch {
       setError('Network problem — please try again.');
+      onChanged(gate); // revert
     } finally {
       setPendingId(null);
     }

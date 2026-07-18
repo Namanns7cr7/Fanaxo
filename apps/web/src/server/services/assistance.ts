@@ -10,9 +10,21 @@ import 'server-only';
 
 import { randomUUID } from 'node:crypto';
 
-import { UserRole, type AssistanceRequestCreate, type FanActor } from '@fanaxo/contracts';
-import { assistanceRequests, fanSessions, tickets } from '@fanaxo/db';
-import { ok, type DomainError, type Result } from '@fanaxo/domain';
+import {
+  UserRole,
+  type Actor,
+  type AssistanceRequestCreate,
+  type FanActor,
+} from '@fanaxo/contracts';
+import { assistanceRequests, fanSessions, tickets, zones } from '@fanaxo/db';
+import {
+  domainError,
+  DomainErrorCode,
+  err,
+  ok,
+  type DomainError,
+  type Result,
+} from '@fanaxo/domain';
 import { eq } from 'drizzle-orm';
 
 import { writeAudit } from '../audit';
@@ -84,18 +96,28 @@ export function fanDefaultZoneId(actor: FanActor): string | null {
   return ticket?.gateId ?? null;
 }
 
-export function listOpenAssistanceRequests(
-  venueId: string,
-  limit = 20,
-): Array<{
-  id: string;
-  category: string;
-  description: string;
-  zoneId: string;
-  createdAt: string;
-}> {
-  return getDb()
-    .db.select()
+export interface OpenAssistanceRequest {
+  readonly id: string;
+  readonly category: string;
+  readonly description: string;
+  readonly zoneId: string;
+  readonly zoneName: string;
+  readonly createdAt: string;
+}
+
+/** Open fan help requests for the venue, with zone names resolved for display. */
+export function listOpenAssistanceRequests(venueId: string, limit = 20): OpenAssistanceRequest[] {
+  const db = getDb().db;
+  const zoneNames = new Map(
+    db
+      .select()
+      .from(zones)
+      .where(eq(zones.venueId, venueId))
+      .all()
+      .map((zone) => [zone.id, zone.name]),
+  );
+  return db
+    .select()
     .from(assistanceRequests)
     .where(eq(assistanceRequests.venueId, venueId))
     .all()
@@ -107,8 +129,54 @@ export function listOpenAssistanceRequests(
       category: request.category,
       description: request.description,
       zoneId: request.zoneId,
+      zoneName: zoneNames.get(request.zoneId) ?? 'the venue',
       createdAt: request.createdAt,
     }));
+}
+
+/**
+ * A staff member (volunteer or operator) takes ownership of a fan help
+ * request. Moves it out of the open queue and audits who responded.
+ */
+export function acknowledgeAssistanceRequest(
+  actor: Actor,
+  requestId: string,
+  action: 'acknowledge' | 'resolve',
+): Result<{ status: string }, DomainError> {
+  const handle = getDb();
+  const row = handle.db
+    .select()
+    .from(assistanceRequests)
+    .where(eq(assistanceRequests.id, requestId))
+    .get();
+  if (row === undefined || row.venueId !== actor.venueId) {
+    return err(domainError(DomainErrorCode.NOT_FOUND, 'Help request not found'));
+  }
+
+  const nextStatus = action === 'resolve' ? 'resolved' : 'acknowledged';
+  const now = new Date().toISOString();
+  const correlationId = randomUUID();
+
+  const txn = handle.sqlite.transaction(() => {
+    handle.db
+      .update(assistanceRequests)
+      .set({ status: nextStatus, updatedAt: now })
+      .where(eq(assistanceRequests.id, requestId))
+      .run();
+    writeAudit({
+      actor,
+      action: `assistance.${action}`,
+      resource: 'assistance_request',
+      resourceId: requestId,
+      venueId: actor.venueId,
+      correlationId,
+      before: { status: row.status },
+      after: { status: nextStatus },
+    });
+  });
+  txn();
+
+  return ok({ status: nextStatus });
 }
 
 /** Actor kind guard used by the API route. */

@@ -1,0 +1,18 @@
+# Keep the build context small and never ship secrets or local state.
+**/node_modules
+**/.next
+**/.turbo
+**/.data
+.git
+.gitignore
+**/*.log
+
+# Secrets: injected as host environment variables, never baked into the image.
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local editor / OS cruft
+.vscode
+.idea
+.DS_Store

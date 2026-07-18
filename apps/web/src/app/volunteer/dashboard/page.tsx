@@ -8,9 +8,10 @@ import { BackButton } from '@/components/BackButton';
 import { SignOutButton } from '@/components/SignOutButton';
 import { resolveActorOfKind } from '@/server/auth/session';
 import { getDb } from '@/server/db';
+import { listOpenAssistanceRequests } from '@/server/services/assistance';
 import { listTasksForAssignee } from '@/server/services/tasks';
 
-import { VolunteerConsole, type VolunteerTask } from './VolunteerConsole';
+import { VolunteerConsole, type HelpRequest, type VolunteerTask } from './VolunteerConsole';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Volunteer dashboard' };
@@ -32,6 +33,12 @@ export default async function VolunteerDashboardPage() {
       status: task.status,
       version: task.version,
     }));
+  const helpRequests: HelpRequest[] = listOpenAssistanceRequests(actor.venueId).map((request) => ({
+    id: request.id,
+    category: request.category,
+    description: request.description,
+    zoneName: request.zoneName,
+  }));
 
   return (
     <main id="main" className="bg-ink min-h-screen px-4 py-8 sm:px-8">
@@ -49,7 +56,11 @@ export default async function VolunteerDashboardPage() {
           <SignOutButton />
         </header>
 
-        <VolunteerConsole tasks={openTasks} defaultZoneId={actor.zoneId} />
+        <VolunteerConsole
+          tasks={openTasks}
+          helpRequests={helpRequests}
+          defaultZoneId={actor.zoneId}
+        />
 
         <div className="border-surface-line mt-8 flex justify-start border-t pt-4">
           <BackButton href="/select-role" label="Switch role" />
